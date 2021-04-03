@@ -16,5 +16,5 @@ DATABASES = {
 }
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:80',
+    'http://localhost:90',
 ]
