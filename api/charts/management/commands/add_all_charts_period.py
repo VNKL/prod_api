@@ -1,5 +1,6 @@
 from multiprocessing import Process
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.charts.serializers import ChartAddAllPeriodSerializer
 from .add_chart_period import add_chart_period
@@ -26,6 +27,7 @@ def add_all_charts_period(date_from, date_to):
     processes = []
     for service in CHARTS:
         pars_params = {'service': service, 'date_from': date_from, 'date_to': date_to}
+        db.connections.close_all()
         p = Process(target=add_chart_period, kwargs=pars_params)
         p.start()
         processes.append(p)

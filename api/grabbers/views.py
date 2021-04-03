@@ -1,5 +1,6 @@
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
+from django import db
 from rest_framework import views, status
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -29,6 +30,7 @@ class GrabbersAddView(views.APIView):
         serializer = GrabberAddSerializer(data=request.query_params)
         if serializer.is_valid():
             grabber = create_grabber(user=user, data=serializer.validated_data)
+            db.connections.close_all()
             process = Process(target=call_command, args=('start_grabber',), kwargs=grabber)
             process.start()
             return Response(grabber)

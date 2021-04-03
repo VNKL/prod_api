@@ -3,6 +3,7 @@ from urllib.parse import quote
 from django.core.management import call_command
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django import db
 from rest_framework import views, status
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -32,6 +33,7 @@ class CreateCampaignView(views.APIView):
         serializer = CreateCampaignSerializer(data=request.query_params)
         if serializer.is_valid():
             campaign = create_campaign(user=user, data=serializer.validated_data)
+            db.connections.close_all()
             process = Process(target=call_command, args=('start_campaign',), kwargs=campaign)
             process.start()
             return Response(campaign)
@@ -89,6 +91,7 @@ class UpdateSegmentSizesView(views.APIView):
             user = get_object_or_404(User, username=request.user.username)
             campaign = Campaign.objects.filter(campaign_id=serializer.validated_data['id'], owner=user).first()
             if campaign:
+                db.connections.close_all()
                 process = Process(target=call_command, args=('update_segment_sizes',),
                                   kwargs={'campaign_id': campaign.campaign_id})
                 process.start()
@@ -133,6 +136,7 @@ class CreateAutomateView(views.APIView):
             automate = create_automate(user=user, data=serializer.validated_data)
             if list(automate.keys())[0] == 'error':
                 return Response(automate, status=status.HTTP_400_BAD_REQUEST)
+            db.connections.close_all()
             process = Process(target=call_command, args=('start_automate',), kwargs=automate)
             process.start()
             return Response(automate)

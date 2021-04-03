@@ -1,5 +1,6 @@
 from django.core.management import call_command
 from django.shortcuts import get_object_or_404
+from django import db
 from rest_framework import views, status
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -29,6 +30,7 @@ class RelatedAddView(views.APIView):
         serializer = CreateScannerSerializer(data=request.query_params)
         if serializer.is_valid():
             scanner = create_scanner(user=user, data=serializer.validated_data)
+            db.connections.close_all()
             process = Process(target=call_command, args=('start_scanner',), kwargs=scanner)
             process.start()
             return Response(scanner)

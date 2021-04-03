@@ -1,4 +1,5 @@
 from django.core.management import call_command
+from django import db
 from rest_framework import views, status, viewsets
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -36,6 +37,7 @@ class ChartsAddAllView(views.APIView):
     def get(self, request):
         serializer = ChartAddAllSerializer(data=request.query_params)
         if serializer.is_valid():
+            db.connections.close_all()
             process = Process(target=call_command, args=('add_all_charts',), kwargs=serializer.validated_data)
             process.start()
             return Response({'parsing charts starts in background'}, status=status.HTTP_200_OK)
@@ -48,6 +50,7 @@ class ChartsAddPeriodView(views.APIView):
     def get(self, request):
         serializer = ChartAddPeriodSerializer(data=request.query_params)
         if serializer.is_valid():
+            db.connections.close_all()
             process = Process(target=call_command, args=('add_chart_period',), kwargs=serializer.validated_data)
             process.start()
             return Response({'parsing charts starts in background'}, status=status.HTTP_200_OK)
@@ -60,6 +63,7 @@ class ChartsAddAllPeriodView(views.APIView):
     def get(self, request):
         serializer = ChartAddAllPeriodSerializer(data=request.query_params)
         if serializer.is_valid():
+            db.connections.close_all()
             process = Process(target=call_command, args=('add_all_charts_period',), kwargs=serializer.validated_data)
             process.start()
             return Response({'parsing charts starts in background'}, status=status.HTTP_200_OK)
@@ -136,6 +140,7 @@ class ChartsDelDuplicatesView(views.APIView):
     permission_classes = [permissions.IsAdminUser, ChartsPermission]
 
     def get(self, request):
+        db.connections.close_all()
         process = Process(target=call_command, args=('del_duplicates',))
         process.start()
         return Response({'deleting starts in background'}, status=status.HTTP_200_OK)

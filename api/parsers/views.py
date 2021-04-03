@@ -6,6 +6,7 @@ from urllib.parse import quote
 from django.core.management import call_command
 from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import get_object_or_404, get_list_or_404
+from django import db
 from rest_framework import views, status
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -36,6 +37,7 @@ class ParsersAddView(views.APIView):
         serializer = ParserAddSerializer(data=request.query_params)
         if serializer.is_valid():
             parser = create_parser(user=user, data=serializer.validated_data)
+            db.connections.close_all()
             process = Process(target=call_command, args=('start_parser',), kwargs=parser)
             process.start()
             return Response(parser)
