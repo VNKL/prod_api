@@ -16,6 +16,7 @@ class User(DjangoUser):
     can_grabbers = models.BooleanField(default=False)
     can_parsers = models.BooleanField(default=False)
     can_related = models.BooleanField(default=False)
+    is_testing = models.BooleanField(default=True)
 
     def __str__(self):
         return f'User "{self.username}"'
