@@ -74,7 +74,6 @@ class VkEngine:
         if 'error' in resp.keys():
             return self._handle_api_error(captcha_key, captcha_sid, data, resp, url)
         else:
-            print(resp)
             return resp['response']
 
     def _handle_requests_error(self, url, data, captcha_sid, captcha_key):

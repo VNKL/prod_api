@@ -50,7 +50,7 @@ class AudioSaversParser(VkEngine):
         artist_id = artist_card_url.replace('https://vk.com/artist/', '')
 
         resp = self._api_response('catalog.getAudioArtist', {'artist_id': artist_id, 'need_blocks': 1})
-        if resp:
+        if resp and 'artists' in resp.keys():
             artist_name = resp['artists'][0]['name']
             artist_group = utils.pars_url_from_artist_card(resp, url_type='group')
             artist_user = utils.pars_url_from_artist_card(resp, url_type='user')
