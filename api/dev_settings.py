@@ -1,4 +1,6 @@
-from .settings import BASE_DIR
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = '#x87qywyhg^#3hz^&(et)k&k&=7x72&1n)c-*02t8aiuem%v*9'
 
