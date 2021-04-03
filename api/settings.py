@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import datetime
 import os
 from pathlib import Path
+from . import prod_settings, dev_settings
+
+
+PRODUCTION = os.environ.get('PRODUCTION')
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '#x87qywyhg^#3hz^&(et)k&k&=7x72&1n)c-*02t8aiuem%v*9'
+
+SECRET_KEY = prod_settings.SECRET_KEY if PRODUCTION else dev_settings.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if not PRODUCTION else False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['.localhost'] if PRODUCTION else ['*']
 
 
 # Application definition
@@ -87,17 +93,7 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ['DB_NAME'],
-        'USER': os.environ['DB_USER'],
-        'PASSWORD': os.environ['DB_PASS'],
-        'HOST': os.environ['DB_HOST'],
-        'PORT': os.environ['DB_PORT']
-
-    }
-}
+DATABASES = prod_settings.DATABASES if PRODUCTION else dev_settings.DATABASES
 
 
 REST_FRAMEWORK = {
@@ -155,11 +151,7 @@ STATIC_ROOT = BASE_DIR / 'static'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000',
-    'http://localhost:90',
-    'http://192.168.1.165:3000',
-]
+CORS_ORIGIN_WHITELIST = prod_settings.CORS_ORIGIN_WHITELIST if PRODUCTION else dev_settings.CORS_ORIGIN_WHITELIST
 
 JWT_AUTH = {
     # how long the original token is valid for
