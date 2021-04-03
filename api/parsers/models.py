@@ -4,12 +4,8 @@ from api.users.models import User
 
 
 class Parser(models.Model):
-    STATUS_CHOICES = [
-        [0, 'Ошибка'],
-        [1, 'Выполняется'],
-        [2, 'Завершено'],
-        [3, 'Ожидает очереди']
-    ]
+    STATUS_CHOICES = [[0, 'Ошибка'], [1, 'Выполняется'], [2, 'Завершено'], [3, 'Ожидает очереди']]
+
     owner = models.ForeignKey(User, related_name='parsers', on_delete=models.CASCADE)
     status = models.IntegerField(default=3, blank=False, null=False, choices=STATUS_CHOICES)
     error = models.TextField(blank=True, null=True)
