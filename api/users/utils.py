@@ -7,7 +7,7 @@ from api.settings import VK_APP_ID, VK_APP_SECRET
 def bind_vk(code, django_username):
     url = f'https://oauth.vk.com/access_token?client_id={VK_APP_ID}' \
                                             f'&client_secret={VK_APP_SECRET}' \
-                                            f'&redirect_uri=http://192.168.1.165:8000/api/users.bindVk' \
+                                            f'&redirect_uri=http://77.223.106.195:70/api/users.bindVk' \
                                             f'&code={code}'
     resp = requests.get(url).json()
     print(resp)
