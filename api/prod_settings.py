@@ -23,7 +23,8 @@ CORS_ORIGIN_WHITELIST = [
     'http://localhost',
     'http://77.223.106.195:90',
     'http://77.223.106.195:80',
-    'http://77.223.106.195'
+    'http://77.223.106.195',
+    'http://from-shame-to-fame.ru',
 ]
 
 REST_FRAMEWORK = {
