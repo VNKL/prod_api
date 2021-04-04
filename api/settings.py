@@ -32,7 +32,7 @@ SECRET_KEY = prod_settings.SECRET_KEY if PRODUCTION else dev_settings.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if not PRODUCTION else False
 
-ALLOWED_HOSTS = ['.localhost', 'api', 'nginx', 'front', '77.223.106.195'] if PRODUCTION else ['*']
+ALLOWED_HOSTS = prod_settings.ALLOWED_HOSTS if PRODUCTION else dev_settings.ALLOWED_HOSTS
 
 
 # Application definition
