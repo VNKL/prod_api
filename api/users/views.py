@@ -45,4 +45,4 @@ class UserBindVkView(views.APIView):
         if code:
             bind_vk(code, username)
 
-        return HttpResponseRedirect(redirect_to='http://77.223.106.195/')
+        return HttpResponseRedirect(redirect_to='http://from-shame-to-fame.ru/')
