@@ -46,7 +46,7 @@ def save_parsing_result(parser, result):
         audio_objects.append(audio)
 
     if audio_objects:
-        Audio.objects.bulk_create(audio_objects, batch_size=40)
+        Audio.objects.bulk_create(audio_objects, batch_size=10)
         parser.savers_count = _len_parser_savers_count(audio_objects)
         parser.audios_count = len(audio_objects)
         parser.save()
