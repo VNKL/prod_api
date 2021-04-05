@@ -27,14 +27,14 @@ class Audio(models.Model):
     parsing_date = models.DateTimeField(blank=False, null=False)
     owner_id = models.IntegerField(blank=False, null=False)
     audio_id = models.IntegerField(blank=False, null=False)
-    artist = models.CharField(max_length=100, blank=False, null=False)
-    title = models.CharField(max_length=100, blank=False, null=False)
+    artist = models.TextField(blank=False, null=False)
+    title = models.TextField(blank=False, null=False)
     date = models.DateTimeField(blank=True, null=True)
     chart_position = models.IntegerField(blank=True, null=True)
     post_owner_id = models.IntegerField(blank=True, null=True)
     post_id = models.IntegerField(blank=True, null=True)
     savers_count = models.IntegerField(default=0)
-    source = models.CharField(max_length=100, blank=True, null=True)
+    source = models.TextField(blank=True, null=True)
     doubles = models.IntegerField(default=0, blank=True, null=True)
 
     def __str__(self):
