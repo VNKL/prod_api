@@ -483,8 +483,8 @@ class AudioSaversParser(VkEngine):
                 user_id = user.replace('https://vk.com/', '')
 
         if user_id:
-            resp = self._api_response('users.get', {'user_ids': user_id, 'fields': 'counters'})
-            if resp and 'audios' in resp[0]['counters'].keys() and resp[0]['counters']['audios']:
+            resp = self._api_response('users.get', {'user_ids': user_id})
+            if resp and 'id' in resp[0].keys():
                 return resp[0]['id']
 
     def _get_newsfeed_posts(self, q):
