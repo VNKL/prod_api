@@ -6,6 +6,7 @@ from random import uniform
 from time import sleep
 from python_rucaptcha import ImageCaptcha
 from fake_useragent import UserAgent
+from fake_useragent.errors import UserAgentError, FakeUserAgentError
 
 from api.accounts.utils import load_account, mark_account_dead, mark_account_rate_limited, release_account, \
     load_proxy, release_proxy
@@ -39,7 +40,10 @@ class VkEngine:
         self.proxy = load_proxy()
         self.errors = []
         self.n_try = 0
-        self.user_agent = UserAgent().random
+        try:
+            self.user_agent = UserAgent()
+        except (UserAgentError, FakeUserAgentError):
+            self.user_agent = None
 
     def __del__(self):
         release_account(self.account)
@@ -66,7 +70,7 @@ class VkEngine:
                 data = {'captcha_sid': captcha_sid, 'captcha_key': captcha_key}
 
         try:
-            headers = {'User-Agent': self.user_agent}
+            headers = {'User-Agent': self.user_agent} if self.user_agent else None
             resp = requests.post(url, data, proxies=proxy_dict, headers=headers).json()
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
