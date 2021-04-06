@@ -28,12 +28,12 @@ class Position(models.Model):
 
 class Track(models.Model):
     positions = models.ManyToManyField(Position, related_name='track')
-    artist = models.CharField(max_length=100)
-    title = models.CharField(max_length=100)
+    artist = models.TextField()
+    title = models.TextField()
     has_cover = models.BooleanField(default=False)
     cover_url = models.TextField(blank=True, null=True)
     has_distributor = models.BooleanField(default=False)
-    distributor = models.CharField(max_length=100, blank=True, null=True)
+    distributor = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f'Chart Track "{self.artist} - {self.title}"'

@@ -9,8 +9,8 @@ class Scanner(models.Model):
     owner = models.ForeignKey(User, related_name='related_scanners', on_delete=models.CASCADE)
     status = models.IntegerField(blank=False, null=False, choices=STATUS_CHOICES)
     error = models.TextField(blank=True, null=True)
-    artist_url = models.CharField(max_length=100)
-    artist_name = models.CharField(max_length=100, blank=True, null=True)
+    artist_url = models.TextField()
+    artist_name = models.TextField(blank=True, null=True)
     photo_url = models.TextField(blank=True, null=True)
     related_count = models.IntegerField(blank=True, null=True)
     listens = models.IntegerField()
@@ -27,12 +27,12 @@ class Scanner(models.Model):
 
 class Artist(models.Model):
     scanners = models.ManyToManyField(Scanner, related_name='related')
-    name = models.CharField(max_length=100)
-    card_url = models.CharField(max_length=100)
-    group_name = models.CharField(max_length=100, blank=True, null=True)
-    group_url = models.CharField(max_length=100, blank=True, null=True)
-    user_name = models.CharField(max_length=100, blank=True, null=True)
-    user_url = models.CharField(max_length=100, blank=True, null=True)
+    name = models.TextField()
+    card_url = models.TextField()
+    group_name = models.TextField(blank=True, null=True)
+    group_url = models.TextField(blank=True, null=True)
+    user_name = models.TextField(blank=True, null=True)
+    user_url = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f'Artist "{self.name}"'

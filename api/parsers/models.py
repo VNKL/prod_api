@@ -16,7 +16,7 @@ class Parser(models.Model):
     finish_date = models.DateTimeField(blank=True, null=True)
     savers_count = models.IntegerField(blank=True, null=True)
     audios_count = models.IntegerField(blank=True, null=True)
-    result_path = models.CharField(max_length=100, blank=True, null=True)
+    result_path = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f'Parser {self.pk} for method "{self.method}" by user "{self.owner.username}"'
