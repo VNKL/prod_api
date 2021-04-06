@@ -468,8 +468,8 @@ class AudioSaversParser(VkEngine):
                 group_id = group.replace('https://vk.com/', '')
 
         if group_id:
-            resp = self._api_response('groups.getById', {'group_id': group_id, 'fields': 'counters'})
-            if resp and 'audios' in resp[0]['counters'].keys() and resp[0]['counters']['audios']:
+            resp = self._api_response('groups.getById', {'group_id': group_id})
+            if resp and 'id' in resp[0].keys():
                 return resp[0]['id']
 
     def _get_user_id(self, user):
