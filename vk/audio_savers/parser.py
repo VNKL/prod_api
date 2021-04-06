@@ -46,6 +46,11 @@ def _pars_audios_batch(audios, result_list):
 class AudioSaversParser(VkEngine):
 
     def get_by_artist_url(self, artist_card_url, count_only):
+        if 'https://vk.com/artist/' not in artist_card_url:
+            self.errors.append({'method': 'api/parsers/get_by_artist_url', 'param': artist_card_url,
+                                'error_msg': 'Invalid artist url'})
+            return None
+
         audios, artist_name, artist_group, artist_user = [], None, None, None
         artist_id = artist_card_url.replace('https://vk.com/artist/', '')
 
@@ -464,7 +469,7 @@ class AudioSaversParser(VkEngine):
 
         if group_id:
             resp = self._api_response('groups.getById', {'group_id': group_id, 'fields': 'counters'})
-            if resp and resp[0]['counters']['audios']:
+            if resp and 'audios' in resp[0]['counters'].keys() and resp[0]['counters']['audios']:
                 return resp[0]['id']
 
     def _get_user_id(self, user):
@@ -479,7 +484,7 @@ class AudioSaversParser(VkEngine):
 
         if user_id:
             resp = self._api_response('users.get', {'user_ids': user_id, 'fields': 'counters'})
-            if resp and resp[0]['counters']['audios']:
+            if resp and 'audios' in resp[0]['counters'].keys() and resp[0]['counters']['audios']:
                 return resp[0]['id']
 
     def _get_newsfeed_posts(self, q):
