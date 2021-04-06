@@ -41,7 +41,7 @@ class VkEngine:
         self.errors = []
         self.n_try = 0
         try:
-            self.user_agent = UserAgent()
+            self.user_agent = UserAgent().random
         except (UserAgentError, FakeUserAgentError):
             self.user_agent = None
 
