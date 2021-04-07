@@ -10,11 +10,16 @@ def load_account():
     try:
         account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
     except Exception:
+        sleep(1)
         return load_account()
     if account:
-        account.is_busy = True
-        account.save()
-        return account
+        try:
+            account.is_busy = True
+            account.save()
+            return account
+        except Exception:
+            sleep(1)
+            return load_account()
     else:
         accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
         delta = timezone.timedelta(hours=24)
