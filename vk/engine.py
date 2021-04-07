@@ -5,12 +5,10 @@ import requests
 from random import uniform
 from time import sleep
 from python_rucaptcha import ImageCaptcha
-from fake_useragent import UserAgent
-from fake_useragent.errors import UserAgentError, FakeUserAgentError
 
 from api.accounts.utils import load_account, mark_account_dead, mark_account_rate_limited, release_account, \
     load_proxy, release_proxy
-from api.settings import VK_API_VERSION, RUCAPTCHA_KEY, EXECUTE_FALSES_METHODS
+from api.settings import VK_API_VERSION, RUCAPTCHA_KEY, EXECUTE_FALSES_METHODS, USER_AGENT
 
 
 API_SLEEPING_ERRORS = [1, 6, 10]        # Ошибка АПИ ВК, для которых просят тповторить запрос позже
@@ -40,10 +38,7 @@ class VkEngine:
         self.proxy = load_proxy()
         self.errors = []
         self.n_try = 0
-        try:
-            self.user_agent = UserAgent().random
-        except (UserAgentError, FakeUserAgentError):
-            self.user_agent = None
+        self.user_agent = USER_AGENT
 
     def __del__(self):
         release_account(self.account)

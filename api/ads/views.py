@@ -74,6 +74,7 @@ class UpdateCampaignStatsView(views.APIView):
             user = get_object_or_404(User, username=request.user.username)
             campaign = get_object_or_404(Campaign, campaign_id=serializer.validated_data['id'], owner=user)
             campaign = update_campaign_stats(campaign)
+            print(campaign)
             if serializer.validated_data['extended']:
                 campaign = CampaignExtendedSerializer(campaign)
             else:

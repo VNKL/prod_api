@@ -71,7 +71,6 @@ def update_campaign_stats(campaign):
     camp_status = vk.get_campaign_status(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
     campaign.status = int(camp_status) if camp_status else campaign.status
     ads_stat = vk.get_ads_stat(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
-    print('ads_stat', ads_stat)
 
     if campaign.has_moderate_audios and not campaign.audios_is_moderated:
         _pars_post_audios_after_moderate(ads, ads_stat, campaign, vk)
@@ -80,18 +79,9 @@ def update_campaign_stats(campaign):
     audios_stat = vk.get_audios_stat(_get_campaign_audios(ads))
     all_audio_stat = {'audios': audios_stat, 'playlists': playlists_stat}
 
-    updated_ads, updated_playlists, updated_audios = [], [], []
     camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins = [0], [0], [0], [0], [0], [0]
     for ad in ads:
-        _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins,
-                    updated_ads, updated_audios, updated_playlists)
-
-    Ad.objects.bulk_update(updated_ads, batch_size=20, fields=['ad_name', 'status', 'approved', 'spent',
-                                                               'reach', 'cpm', 'cpm_price', 'listens', 'cpl', 'lr',
-                                                               'saves', 'cps', 'sr', 'clicks', 'cpc', 'cr',
-                                                               'joins', 'cpj', 'jr'])
-    Playlist.objects.bulk_update(updated_playlists, batch_size=40, fields=['listens', 'followers'])
-    Audio.objects.bulk_update(updated_audios, batch_size=40, fields=['savers_count'])
+        _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins)
 
     _process_campaign_stat(camp_listens, camp_reach, camp_saves, camp_spent, camp_clicks, camp_joins, campaign)
 
@@ -175,22 +165,20 @@ def _process_campaign_stat(camp_listens, camp_reach, camp_saves, camp_spent, cam
     campaign.save()
 
 
-def _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins,
-                updated_ads, updated_audios, updated_playlists):
+def _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins):
     ad_listens, ad_saves = [0], [0]
 
     playlist = Playlist.objects.filter(ad=ad).first()
     if playlist:
         _process_playlist_stat(all_audio_stat, camp_listens, camp_saves, ad_listens, ad_saves,
-                               playlist, updated_playlists)
+                               playlist)
 
     audios = Audio.objects.filter(ad=ad)
     if audios:
         for audio in audios:
-            _process_audio_stat(audio, all_audio_stat, camp_saves, updated_audios, ad_saves)
+            _process_audio_stat(audio, all_audio_stat, camp_saves, ad_saves)
 
     _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joins, ad_listens, ad_saves)
-    updated_ads.append(ad)
 
 
 def _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joins, ad_listens, ad_saves):
@@ -221,19 +209,21 @@ def _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joi
     ad.cpj = round((ad.spent / ad.clicks), 2) if ad.clicks else 0
     ad.jr = round((ad.joins / ad.reach), 4) if ad.reach else 0
 
+    ad.save()
 
-def _process_audio_stat(audio, all_audio_stat, camp_saves, updated_audios, ad_saves):
+
+def _process_audio_stat(audio, all_audio_stat, camp_saves, ad_saves):
     audio_full_id = f"{audio.owner_id}_{audio.audio_id}"
     au_stat = [x for x in all_audio_stat['audios'] if f"{x['owner_id']}_{x['id']}" == audio_full_id]
     if au_stat and 'savers_count' in au_stat[0]:
         audio.savers_count = au_stat[0]['savers_count'] if au_stat[0]['savers_count'] else 0
         ad_saves.append(au_stat[0]['savers_count'] if au_stat[0]['savers_count'] else 0)
         camp_saves.append(au_stat[0]['savers_count'] if au_stat[0]['savers_count'] else 0)
-        updated_audios.append(audio)
+        audio.save()
 
 
 def _process_playlist_stat(all_audio_stat, camp_listens, camp_saves, ad_listens, ad_saves,
-                           playlist, updated_playlists):
+                           playlist):
     pl_stat = [x for x in all_audio_stat['playlists'] if x['id'] == playlist.playlist_id]
     if pl_stat:
         playlist.listens = pl_stat[0]['plays'] if pl_stat[0]['plays'] else 0
@@ -242,7 +232,7 @@ def _process_playlist_stat(all_audio_stat, camp_listens, camp_saves, ad_listens,
         ad_saves.append(pl_stat[0]['followers'] if pl_stat[0]['followers'] else 0)
         camp_listens.append(pl_stat[0]['plays'] if pl_stat[0]['plays'] else 0)
         camp_saves.append(pl_stat[0]['followers'] if pl_stat[0]['followers'] else 0)
-        updated_playlists.append(playlist)
+        playlist.save()
 
 
 def _get_posts_ids_for_get_audios_from_post(ads, ads_stat):
