@@ -8,7 +8,7 @@ from python_rucaptcha import ImageCaptcha
 
 from api.accounts.utils import load_account, mark_account_dead, mark_account_rate_limited, release_account, \
     load_proxy, release_proxy
-from api.settings import VK_API_VERSION, RUCAPTCHA_KEY, EXECUTE_FALSES_METHODS, USER_AGENT
+from api.settings import VK_API_VERSION, RUCAPTCHA_KEY, EXECUTE_FALSES_METHODS
 
 
 API_SLEEPING_ERRORS = [1, 6, 10]        # Ошибка АПИ ВК, для которых просят тповторить запрос позже
@@ -38,7 +38,6 @@ class VkEngine:
         self.proxy = load_proxy()
         self.errors = []
         self.n_try = 0
-        self.user_agent = USER_AGENT
 
     def __del__(self):
         release_account(self.account)
@@ -65,8 +64,7 @@ class VkEngine:
                 data = {'captcha_sid': captcha_sid, 'captcha_key': captcha_key}
 
         try:
-            headers = {'User-Agent': self.user_agent} if self.user_agent else None
-            resp = requests.post(url, data, proxies=proxy_dict, headers=headers).json()
+            resp = requests.post(url, data, proxies=proxy_dict).json()
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
 

@@ -203,5 +203,3 @@ FEAT_SPLIT_SIMPOLS = [', ', ' feat. ', ' ft. ', ' Feat. ', ' FEAT. ', ' feat ', 
 
 VK_APP_ID = 7669131
 VK_APP_SECRET = 'RD3Ff9rNTL9ezAZNdg5d'
-
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36'
