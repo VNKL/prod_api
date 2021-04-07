@@ -280,7 +280,9 @@ def _get_related(campaign):
 
     related, vk = [], VkRelatedParser()
     for url in artist_urls:
-        related.append(vk.get_related_artists(artist_url=url, listens=25000, max_recurse=1))
+        rels = vk.get_related_artists(artist_url=url, listens=25000, max_recurse=1)
+        if rels:
+            related.append(rels)
 
     names = []
     for item in related:
