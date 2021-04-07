@@ -193,7 +193,7 @@ def _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_liste
 
 
 def _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joins, ad_listens, ad_saves):
-    if ads_stat:
+    if ads_stat and ad.ad_id in ads_stat.keys():
         ad_stat = ads_stat[ad.ad_id]
         ad.ad_name = ad_stat['name']
         ad.status = ad_stat['status']
