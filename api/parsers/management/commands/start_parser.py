@@ -3,6 +3,7 @@ from random import uniform
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.parsers.models import Parser, Audio
 from api.parsers.serializers import ParserExtendedSerializer, AudioSerializer
@@ -42,6 +43,7 @@ def _start_parsing(parser):
 
     _wait_queue(parser)
 
+    db.connections.close_all()
     vk = AudioSaversParser()
     method = parser.method
     error = {'method': parser.method,
