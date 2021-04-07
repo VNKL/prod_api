@@ -71,30 +71,17 @@ def update_campaign_stats(campaign):
     camp_status = vk.get_campaign_status(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
     campaign.status = int(camp_status) if camp_status else campaign.status
     ads_stat = vk.get_ads_stat(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
-    if ads_stat:
-        print('ads_stat')
-    else:
-        print('ads_stat error')
 
     if campaign.has_moderate_audios and not campaign.audios_is_moderated:
         _pars_post_audios_after_moderate(ads, ads_stat, campaign, vk)
 
     playlists_stat = vk.get_playlists_stat(campaign.fake_group_id)
-    if playlists_stat:
-        print('playlists_stat')
-    else:
-        print('playlists_stat error')
     audios_stat = vk.get_audios_stat(_get_campaign_audios(ads))
-    if playlists_stat:
-        print('audios_stat')
-    else:
-        print('audios_stat error')
     all_audio_stat = {'audios': audios_stat, 'playlists': playlists_stat}
 
     updated_ads, updated_playlists, updated_audios = [], [], []
     camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins = [0], [0], [0], [0], [0], [0]
     for ad in ads:
-        print(ad)
         _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_listens, camp_saves, camp_clicks, camp_joins,
                     updated_ads, updated_audios, updated_playlists)
 
@@ -102,14 +89,10 @@ def update_campaign_stats(campaign):
                                                                'reach', 'cpm', 'cpm_price', 'listens', 'cpl', 'lr',
                                                                'saves', 'cps', 'sr', 'clicks', 'cpc', 'cr',
                                                                'joins', 'cpj', 'jr'])
-    print('ads bulk')
     Playlist.objects.bulk_update(updated_playlists, batch_size=40, fields=['listens', 'followers'])
-    print('playlist_bulk')
     Audio.objects.bulk_update(updated_audios, batch_size=40, fields=['savers_count'])
-    print('audio_bulk')
 
     _process_campaign_stat(camp_listens, camp_reach, camp_saves, camp_spent, camp_clicks, camp_joins, campaign)
-    print('_process_campaign_stat')
 
     return campaign
 
