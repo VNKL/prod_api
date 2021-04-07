@@ -45,8 +45,7 @@ class VkAds(VkEngine):
                 data = {'captcha_sid': captcha_sid, 'captcha_key': captcha_key}
 
         try:
-            headers = {'User-Agent': self.user_agent}
-            resp = requests.post(url, data, proxies=proxy_dict, headers=headers).json()
+            resp = requests.post(url, data, proxies=proxy_dict).json()
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_ads_requests_error(url, data, captcha_sid, captcha_key)
 
