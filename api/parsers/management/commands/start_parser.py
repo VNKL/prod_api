@@ -29,7 +29,13 @@ def start_parser(parser_id):
     if not parser:
         print(f'no parser with id {parser_id}')
     else:
-        _start_parsing(parser)
+        try:
+            _start_parsing(parser)
+        except Exception as exc:
+            parser.status = 0
+            parser.error = str(exc)
+            parser.finish_date = timezone.now()
+            parser.save()
 
 
 def _start_parsing(parser):
@@ -112,8 +118,11 @@ def _wait_queue(parser):
         while any(earlier_running):
             sleep(uniform(5, 15))
             for n, earlier_parser in enumerate(earlier_parsers):
-                earlier_parser.refresh_from_db()
-                if earlier_parser.status in [0, 2]:
+                try:
+                    earlier_parser.refresh_from_db()
+                    if earlier_parser.status in [0, 2]:
+                        earlier_running[n] = False
+                except Exception:
                     earlier_running[n] = False
     parser.status = 1
     parser.save()
