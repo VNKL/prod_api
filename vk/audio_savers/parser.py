@@ -3,6 +3,7 @@
 from time import sleep
 from datetime import date, timedelta
 from multiprocessing import Process, Manager
+from django import db
 
 from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS
 from vk.audio_savers import utils
@@ -15,9 +16,13 @@ def get_audio_savers_multiprocess(audios, n_threads):
     audios_batches = _batch_audios_list(audios, n_threads)
     result_list = Manager().list()
     processes = [Process(target=_pars_audios_batch, args=(x, result_list)) for x in audios_batches]
-    for p in processes:
+    for x in audios_batches:
+        db.connections.close_all()
+        p = Process(target=_pars_audios_batch, args=(x, result_list))
         p.start()
+        processes.append(p)
         sleep(1)
+
     for p in processes:
         p.join()
     return result_list
