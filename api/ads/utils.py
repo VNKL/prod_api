@@ -71,6 +71,7 @@ def update_campaign_stats(campaign):
     camp_status = vk.get_campaign_status(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
     campaign.status = int(camp_status) if camp_status else campaign.status
     ads_stat = vk.get_ads_stat(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
+    print('ads_stat', ads_stat)
 
     if campaign.has_moderate_audios and not campaign.audios_is_moderated:
         _pars_post_audios_after_moderate(ads, ads_stat, campaign, vk)
