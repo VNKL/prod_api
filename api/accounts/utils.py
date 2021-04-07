@@ -7,7 +7,10 @@ from .models import Account, Proxy
 
 
 def load_account():
-    account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
+    try:
+        account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
+    except Exception:
+        return load_account()
     if account:
         account.is_busy = True
         account.save()
