@@ -72,6 +72,8 @@ class VkEngine:
         try:
             headers = {'User-Agent': self.user_agent} if self.user_agent else None
             resp = requests.post(url, data, proxies=proxy_dict, headers=headers).json()
+            print(url, data)
+            print(resp)
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
 
