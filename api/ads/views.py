@@ -69,16 +69,23 @@ class UpdateCampaignStatsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated, AdsPermission]
 
     def get(self, request):
+        print('request.query_params', request.query_params)
         serializer = GetSerializer(data=request.query_params)
         if serializer.is_valid():
+            print('serializer.is_valid')
             user = get_object_or_404(User, username=request.user.username)
+            print(user)
             campaign = get_object_or_404(Campaign, campaign_id=serializer.validated_data['id'], owner=user)
+            print(campaign)
             campaign = update_campaign_stats(campaign)
+            print(campaign)
             if serializer.validated_data['extended']:
                 campaign = CampaignExtendedSerializer(campaign)
             else:
                 campaign = CampaignSerializer(campaign)
+            print('campaign.data', campaign.data)
             return Response(campaign.data)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
