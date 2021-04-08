@@ -37,53 +37,56 @@ def load_account():
 
 
 def load_proxy():
-    try:
-        proxy = Proxy.objects.filter(is_alive=True, expiration_date__gt=timezone.now(), n_used__lt=5).first()
-    except Exception:
-        sleep(1)
-        return load_proxy()
-    if proxy:
-        proxy_str = f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
-        if _check_proxy(proxy_str):
-            try:
-                proxy.n_used += 1
-                proxy.save()
-                return f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
-            except Exception:
-                sleep(1)
-                return load_proxy()
-        else:
-            try:
-                proxy.is_alive = False
-                proxy.save()
-                return load_proxy()
-            except Exception:
-                return load_proxy()
-    else:
-        return None
+    return None
+    # try:
+    #     proxy = Proxy.objects.filter(is_alive=True, expiration_date__gt=timezone.now(), n_used__lt=5).first()
+    # except Exception:
+    #     sleep(1)
+    #     return load_proxy()
+    # if proxy:
+    #     proxy_str = f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
+    #     if _check_proxy(proxy_str):
+    #         try:
+    #             proxy.n_used += 1
+    #             proxy.save()
+    #             return f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
+    #         except Exception:
+    #             sleep(1)
+    #             return load_proxy()
+    #     else:
+    #         try:
+    #             proxy.is_alive = False
+    #             proxy.save()
+    #             return load_proxy()
+    #         except Exception:
+    #             return load_proxy()
+    # else:
+    #     return None
 
 
 def release_proxy(proxy_str):
-    proxy_obj = _get_proxy_obj_from_str(proxy_str)
-    if proxy_obj:
-        try:
-            proxy_obj.n_used -= 1
-            proxy_obj.save()
-        except Exception:
-            sleep(1)
-            release_proxy(proxy_str)
+    pass
+    # proxy_obj = _get_proxy_obj_from_str(proxy_str)
+    # if proxy_obj:
+    #     try:
+    #         proxy_obj.n_used -= 1
+    #         proxy_obj.save()
+    #     except Exception:
+    #         sleep(1)
+    #         release_proxy(proxy_str)
 
 
 def mark_proxy_dead(proxy_str):
-    proxy_obj = _get_proxy_obj_from_str(proxy_str)
-    if proxy_obj:
-        try:
-            proxy_obj.is_alive = False
-            proxy_obj.n_used -= 1
-            proxy_obj.save()
-        except Exception:
-            sleep(1)
-            mark_proxy_dead(proxy_str)
+    pass
+    # proxy_obj = _get_proxy_obj_from_str(proxy_str)
+    # if proxy_obj:
+    #     try:
+    #         proxy_obj.is_alive = False
+    #         proxy_obj.n_used -= 1
+    #         proxy_obj.save()
+    #     except Exception:
+    #         sleep(1)
+    #         mark_proxy_dead(proxy_str)
 
 
 def _get_proxy_obj_from_str(proxy_str):
