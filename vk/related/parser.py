@@ -23,16 +23,35 @@ class VkRelatedParser(VkEngine):
             if resp:
                 return resp
 
+    def scroll_artist_card(self, artist_card):
+        related_block_id = utils.pars_related_block_id_from_card_obj(artist_card)
+        if not related_block_id:
+            section_id, next_from = utils.pars_artist_card_section_id_and_next_from(artist_card)
+            if section_id and next_from:
+                resp_2 = self._api_response('catalog.getSection', {'section_id': section_id, 'start_from': next_from})
+                try:
+                    artist_card['catalog']['sections'][0]['blocks'].extend(resp_2['section']['blocks'])
+                    return artist_card
+                except (KeyError, IndexError):
+                    return None
+        else:
+            return artist_card
+
     def recurse_get_related_cards(self, artist_card, listens=25000, n_releases=5, last_days=60, median_days=60,
                                   max_recurse=2, current_recurse=1, genres=None):
-        related_links = self.get_related_links(artist_card)
-        related_cards = self.get_related_cards(related_links)
-        filtered_cards = utils.filter_artist_cards(related_cards, listens, n_releases, last_days, median_days, genres)
-        if isinstance(related_cards, list) and current_recurse <= max_recurse:
-            for card in related_cards:
-                filtered_cards.extend(self.recurse_get_related_cards(card, listens, n_releases, last_days, median_days,
-                                                                     max_recurse, current_recurse=current_recurse + 1))
-        return filtered_cards
+
+        artist_card = self.scroll_artist_card(artist_card)
+        if artist_card:
+            related_links = self.get_related_links(artist_card)
+            related_cards = self.get_related_cards(related_links)
+            filtered_cards = utils.filter_artist_cards(related_cards, listens, n_releases, last_days, median_days, genres)
+            if isinstance(related_cards, list) and current_recurse <= max_recurse:
+                for card in related_cards:
+                    filtered_cards.extend(self.recurse_get_related_cards(card, listens, n_releases, last_days, median_days,
+                                                                         max_recurse, current_recurse=current_recurse + 1))
+            return filtered_cards
+        else:
+            return []
 
     def get_related_artists(self, artist_url, listens=25000, n_releases=5, last_days=60, median_days=60, max_recurse=2):
         artist_card = self.get_artist_card(artist_url)

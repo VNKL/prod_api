@@ -58,6 +58,15 @@ def pars_related_block_id_from_card_obj(card_obj):
             return block['id']
 
 
+def pars_artist_card_section_id_and_next_from(card_obj):
+    try:
+        section_id = card_obj['catalog']['sections'][0]['id']
+        next_from = card_obj['catalog']['sections'][0]['next_from']
+        return section_id, next_from
+    except (KeyError, IndexError):
+        return None, None
+
+
 def code_for_get_related_cards(related_links):
     code = 'return ['
     for link in related_links:
