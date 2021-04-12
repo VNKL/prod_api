@@ -1,5 +1,6 @@
 import copy
 import json
+import traceback
 
 from time import sleep
 from random import uniform
@@ -32,7 +33,12 @@ def start_campaign(campaign_id):
     if not campaign:
         print(f'no campaign with id {campaign_id}')
     else:
-        _start_campaign(campaign)
+        try:
+            _start_campaign(campaign)
+        except Exception:
+            campaign.errors = traceback.format_exc()
+            campaign.status = 3
+            campaign.save()
 
 
 def _start_campaign(campaign):
