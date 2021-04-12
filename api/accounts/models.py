@@ -5,7 +5,7 @@ class Account(models.Model):
     login = models.CharField(max_length=100, blank=False, null=False)
     password = models.CharField(max_length=100, blank=False, null=False)
     token = models.CharField(max_length=100, blank=False, null=False)
-    user_id = models.IntegerField(blank=False, null=False)
+    user_id = models.BigIntegerField(blank=False, null=False)
     is_alive = models.BooleanField(default=True)
     is_busy = models.BooleanField(default=False)
     is_rate_limited = models.BooleanField(default=False)

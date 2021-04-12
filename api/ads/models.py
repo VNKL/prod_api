@@ -10,11 +10,11 @@ class Campaign(models.Model):
     DEFAULT_COVER_URL = 'https://cdn.dribbble.com/users/29051/screenshots/2515769/icon.png'
 
     owner = models.ForeignKey(User, related_name='campaigns', on_delete=models.CASCADE)
-    cabinet_id = models.IntegerField()
+    cabinet_id = models.BigIntegerField()
     cabinet_name = models.TextField()
-    client_id = models.IntegerField(blank=True, null=True)
+    client_id = models.BigIntegerField(blank=True, null=True)
     client_name = models.TextField(blank=True, null=True)
-    campaign_id = models.IntegerField(blank=True, null=True)
+    campaign_id = models.BigIntegerField(blank=True, null=True)
     campaign_name = models.TextField()
     money_limit = models.IntegerField()
     reference = models.TextField(blank=True, null=True)
@@ -33,21 +33,21 @@ class Campaign(models.Model):
     artist = models.TextField(blank=True, null=True)
     title = models.TextField(blank=True, null=True)
     cover_url = models.TextField(default=DEFAULT_COVER_URL)
-    group_id = models.IntegerField()
-    fake_group_id = models.IntegerField(blank=True, null=True)
+    group_id = models.BigIntegerField()
+    fake_group_id = models.BigIntegerField(blank=True, null=True)
     spent = models.FloatField(default=0.0)
-    reach = models.IntegerField(default=0)
+    reach = models.BigIntegerField(default=0)
     cpm = models.FloatField(default=0.0)
-    listens = models.IntegerField(default=0)
+    listens = models.BigIntegerField(default=0)
     cpl = models.FloatField(default=0)
     lr = models.FloatField(default=0)
-    saves = models.IntegerField(default=0)
+    saves = models.BigIntegerField(default=0)
     cps = models.FloatField(default=0)
     sr = models.FloatField(default=0)
-    clicks = models.IntegerField(default=0)
+    clicks = models.BigIntegerField(default=0)
     cpc = models.FloatField(default=0)
     cr = models.FloatField(default=0)
-    joins = models.IntegerField(default=0)
+    joins = models.BigIntegerField(default=0)
     cpj = models.FloatField(default=0)
     jr = models.FloatField(default=0)
     create_date = models.DateTimeField(auto_now_add=True)
@@ -57,7 +57,7 @@ class Campaign(models.Model):
     is_automate = models.BooleanField(default=False)
     has_moderate_audios = models.BooleanField(default=False)
     audios_is_moderated = models.BooleanField(default=False)
-    audience_count = models.IntegerField(default=0)
+    audience_count = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f'Campaign "{self.artist} - {self.title}"'
@@ -68,28 +68,28 @@ class Ad(models.Model):
     APPROVED_CHOICES = [[0, 'Не модерировалось'], [1, 'На модерации'], [2, 'Одобрено'], [3, 'Отклонено']]
 
     campaign = models.ForeignKey(Campaign, related_name='ads', on_delete=models.CASCADE)
-    ad_id = models.IntegerField()
+    ad_id = models.BigIntegerField()
     ad_name = models.TextField()
-    post_owner = models.IntegerField()
-    post_id = models.IntegerField()
+    post_owner = models.BigIntegerField()
+    post_id = models.BigIntegerField()
     status = models.IntegerField(default=1, choices=STATUS_CHOICES)
     approved = models.IntegerField(default=1, choices=APPROVED_CHOICES)
     spent = models.FloatField(default=0.0)
-    reach = models.IntegerField(default=0)
+    reach = models.BigIntegerField(default=0)
     cpm = models.FloatField(default=30.0)
-    listens = models.IntegerField(default=0)
+    listens = models.BigIntegerField(default=0)
     cpl = models.FloatField(default=0)
     lr = models.FloatField(default=0)
-    saves = models.IntegerField(default=0)
+    saves = models.BigIntegerField(default=0)
     cps = models.FloatField(default=0)
     sr = models.FloatField(default=0)
-    clicks = models.IntegerField(default=0)
+    clicks = models.BigIntegerField(default=0)
     cpc = models.FloatField(default=0)
     cr = models.FloatField(default=0)
-    joins = models.IntegerField(default=0)
+    joins = models.BigIntegerField(default=0)
     cpj = models.FloatField(default=0)
     jr = models.FloatField(default=0)
-    audience_count = models.IntegerField(default=0)
+    audience_count = models.BigIntegerField(default=0)
     cpm_price = models.IntegerField(default=30)
 
     def __str__(self):
@@ -98,12 +98,12 @@ class Ad(models.Model):
 
 class Playlist(models.Model):
     ad = models.ForeignKey(Ad, related_name='playlists', on_delete=models.CASCADE)
-    owner_id = models.IntegerField()
-    playlist_id = models.IntegerField()
+    owner_id = models.BigIntegerField()
+    playlist_id = models.BigIntegerField()
     access_key = models.CharField(max_length=100, blank=True, null=True)
     title = models.TextField()
-    listens = models.IntegerField(default=0)
-    followers = models.IntegerField(default=0)
+    listens = models.BigIntegerField(default=0)
+    followers = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f'Playlist "{self.title}"'
@@ -111,12 +111,12 @@ class Playlist(models.Model):
 
 class Audio(models.Model):
     ad = models.ForeignKey(Ad, related_name='audios', on_delete=models.CASCADE)
-    owner_id = models.IntegerField(blank=True, null=True)
-    audio_id = models.IntegerField(blank=True, null=True)
+    owner_id = models.BigIntegerField(blank=True, null=True)
+    audio_id = models.BigIntegerField(blank=True, null=True)
     in_playlist = models.BooleanField(null=True)
     artist = models.TextField()
     title = models.TextField()
-    savers_count = models.IntegerField(default=0)
+    savers_count = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f'Audio "{self.artist} - {self.title}"'

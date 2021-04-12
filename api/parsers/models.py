@@ -14,8 +14,8 @@ class Parser(models.Model):
     count_only = models.BooleanField(default=True)
     start_date = models.DateTimeField(blank=False, null=False)
     finish_date = models.DateTimeField(blank=True, null=True)
-    savers_count = models.IntegerField(blank=True, null=True)
-    audios_count = models.IntegerField(blank=True, null=True)
+    savers_count = models.BigIntegerField(blank=True, null=True)
+    audios_count = models.BigIntegerField(blank=True, null=True)
     result_path = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -25,15 +25,15 @@ class Parser(models.Model):
 class Audio(models.Model):
     parser = models.ForeignKey(Parser, related_name='audios', on_delete=models.CASCADE)
     parsing_date = models.DateTimeField(blank=False, null=False)
-    owner_id = models.IntegerField(blank=False, null=False)
-    audio_id = models.IntegerField(blank=False, null=False)
+    owner_id = models.BigIntegerField(blank=False, null=False)
+    audio_id = models.BigIntegerField(blank=False, null=False)
     artist = models.TextField(blank=False, null=False)
     title = models.TextField(blank=False, null=False)
     date = models.DateTimeField(blank=True, null=True)
     chart_position = models.IntegerField(blank=True, null=True)
-    post_owner_id = models.IntegerField(blank=True, null=True)
-    post_id = models.IntegerField(blank=True, null=True)
-    savers_count = models.IntegerField(default=0)
+    post_owner_id = models.BigIntegerField(blank=True, null=True)
+    post_id = models.BigIntegerField(blank=True, null=True)
+    savers_count = models.BigIntegerField(default=0)
     source = models.TextField(blank=True, null=True)
     doubles = models.IntegerField(default=0, blank=True, null=True)
 
