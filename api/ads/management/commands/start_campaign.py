@@ -251,12 +251,16 @@ def _get_musicians(campaign):
 
     artist = campaign.artist
     check_feat = [True if x in artist else False for x in FEAT_SPLIT_SIMPOLS]
-    if not all(check_feat):
+    if not any(check_feat):
         all_musicians.append(artist)
     else:
+        feat_musicians_variants = []
         for symbols in FEAT_SPLIT_SIMPOLS:
             if symbols in artist:
-                all_musicians.extend(artist.split(symbols))
+                feat_artists = artist.split(symbols)
+                feat_musicians_variants.extend(feat_artists)
+                feat_musicians_variants.append(', '.join(feat_artists))
+        all_musicians.extend(feat_musicians_variants)
 
     musicians = campaign.musicians
     if musicians:
