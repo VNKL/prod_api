@@ -15,7 +15,9 @@ DATABASES = {
     }
 }
 
-ALLOWED_HOSTS = ['.localhost', 'api', 'nginx', 'front', '77.223.106.195', 'from-shame-to-fame.ru']
+ALLOWED_HOSTS = ['.localhost', 'api', 'nginx', 'front', '77.223.106.195',
+                 'from-shame-to-fame.ru', '.from-shame-to-fame.ru', 'www.from-shame-to-fame.ru',
+                 'http://from-shame-to-fame.ru']
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:90',
