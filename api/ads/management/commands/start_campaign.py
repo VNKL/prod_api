@@ -212,6 +212,8 @@ def _create_ads_for_retarget(reference_orig, vk, campaign):
             print(retarget)
             reference = copy.deepcopy(reference_orig)
             post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
+            if not post_replica:
+                print(vk.ads_errors, vk.errors)
             if post_replica and 'post_url' in post_replica.keys():
                 ad_name = f'{retarget_name} / ретаргетинг'
                 print(ad_name)
