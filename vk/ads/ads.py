@@ -46,10 +46,6 @@ class VkAds(VkEngine):
 
         try:
             resp = requests.post(url, data, proxies=proxy_dict).json()
-            print()
-            print(url, data)
-            print(resp)
-            print()
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_ads_requests_error(url, data, captcha_sid, captcha_key)
 
