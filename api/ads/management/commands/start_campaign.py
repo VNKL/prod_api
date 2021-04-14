@@ -145,7 +145,6 @@ def _create_fake_group(vk, campaign, errors):
     fake_group_id = vk.create_fake_group(group_name=campaign.artist)
     if fake_group_id:
         campaign.fake_group_id = fake_group_id
-        campaign.save()
         return fake_group_id
     else:
         errors.append(f'Error with create fake group with name "{campaign.artist}"')
@@ -206,32 +205,23 @@ def _create_ads_for_retarget(reference_orig, vk, campaign):
         return ads
 
     for retarget_name in retarget_names:
-        print('retarget_name', retarget_name)
         retargets = [x for x in cab_retarget if x['name'] == retarget_name]
         for retarget in retargets:
-            print(retarget)
             reference = copy.deepcopy(reference_orig)
             post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
-            if post_replica:
-                print(post_replica)
-            else:
-                print(vk.ads_errors, vk.errors)
             if post_replica and 'post_url' in post_replica.keys():
                 ad_name = f'{retarget_name} / ретаргетинг'
-                print(ad_name)
                 ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
                                      ad_name=ad_name, post_url=post_replica['post_url'],
                                      sex=campaign.sex, music=campaign.music, boom=campaign.boom,
                                      age_from=campaign.age_from, age_to=campaign.age_to,
                                      age_disclaimer=campaign.age_disclaimer, retarget_id=retarget['id'])
-                print(ad_id)
                 if ad_id:
                     sleep(uniform(1, 4))
                     audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
                                                          ad_id=ad_id, post_url=post_replica['post_url'])
                     ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
                     ads.append(ad)
-        print('\n-------------------\n')
     return ads
 
 
