@@ -71,24 +71,12 @@ def update_campaign_stats(campaign):
     camp_status = vk.get_campaign_status(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
     campaign.status = int(camp_status) if camp_status else campaign.status
     ads_stat = vk.get_ads_stat(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
-    if ads_stat:
-        print('got ads_stat')
-    else:
-        print('ads_stat error')
 
     if campaign.has_moderate_audios and not campaign.audios_is_moderated:
         _pars_post_audios_after_moderate(ads, ads_stat, campaign, vk)
 
     playlists_stat = vk.get_playlists_stat(campaign.fake_group_id)
-    if playlists_stat:
-        print('got playlist_stat')
-    else:
-        print('playlists_stat error')
     audios_stat = vk.get_audios_stat(_get_campaign_audios(ads))
-    if audios_stat:
-        print('got audios_stat')
-    else:
-        print('audios_stat error')
     all_audio_stat = {'audios': audios_stat, 'playlists': playlists_stat}
 
     updated_ads, updated_playlists, updated_audios = [], [], []
