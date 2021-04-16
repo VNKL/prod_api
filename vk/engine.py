@@ -145,6 +145,9 @@ class VkEngine:
         check_falses_methods = [True if x in code else False for x in EXECUTE_FALSES_METHODS]
         if all(execute_falses) and any(check_falses_methods):
             return None
+        elif any(execute_falses) and 'audio.add' in code and self.n_try < 3:
+            self.n_try += 1
+            return self._execute_response(code)
         elif all(execute_falses) and self.n_try < 3:
             mark_account_rate_limited(self.account)
             self.account = load_account()

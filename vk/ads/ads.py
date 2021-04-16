@@ -354,6 +354,7 @@ class VkAds(VkEngine):
                     audio['audio_id'] = audio_id
                     audio['in_playlist'] = True
                     reference['playlist']['audios'].append(audio)
+            sleep(uniform(1, 4))
 
         pl_audios = [f"{x['owner_id']}_{x['audio_id']}" for x in reference['playlist']['audios']]
         pl_audios_str = ','.join(pl_audios)
