@@ -1,7 +1,6 @@
 import requests
 
 from django.utils import timezone
-from django.db import connections
 from time import sleep
 
 from .models import Account, Proxy
@@ -11,15 +10,12 @@ def load_account(n_try=0):
     if n_try < 5:
 
         try:
-            connections.close_all()
             account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
         except Exception:
             sleep(1)
             return load_account(n_try=n_try + 1)
-
         if account:
             try:
-                account = Account.objects.filter(pk=account.pk).first()
                 account.is_busy = True
                 account.save()
                 return account
@@ -120,8 +116,6 @@ def _check_proxy(proxy_str):
 def mark_account_dead(account, n_try=0):
     if n_try < 5:
         try:
-            connections.close_all()
-            account = Account.objects.filter(pk=account.pk).first()
             account.is_alive = False
             account.is_busy = False
             account.save()
@@ -133,8 +127,6 @@ def mark_account_dead(account, n_try=0):
 def mark_account_rate_limited(account, n_try=0):
     if n_try < 5:
         try:
-            connections.close_all()
-            account = Account.objects.filter(pk=account.pk).first()
             account.is_busy = False
             account.is_rate_limited = True
             account.rate_limit_date = timezone.now()
@@ -147,8 +139,6 @@ def mark_account_rate_limited(account, n_try=0):
 def release_account(account, n_try=0):
     if n_try < 5:
         try:
-            connections.close_all()
-            account = Account.objects.filter(pk=account.pk).first()
             account.is_busy = False
             account.is_rate_limited = False
             account.save()
@@ -194,3 +184,4 @@ def del_expired_proxy():
     except Exception:
         sleep(1)
         del_expired_proxy()
+
