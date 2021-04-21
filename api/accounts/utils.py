@@ -1,39 +1,45 @@
 import requests
 
 from django.utils import timezone
+from django.db import connections
 from time import sleep
 
 from .models import Account, Proxy
 
 
-def load_account():
-    try:
-        account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
-    except Exception:
-        sleep(1)
-        return load_account()
-    if account:
-        try:
-            account.is_busy = True
-            account.save()
-            return account
-        except Exception:
-            sleep(1)
-            return load_account()
-    else:
-        try:
-            accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
-            delta = timezone.timedelta(hours=24)
-            for acc in accounts:
-                if acc.rate_limit_date + delta > timezone.now():
-                    release_account(acc)
-                    return acc
-        except Exception:
-            sleep(1)
-            return load_account()
+def load_account(n_try=0):
+    if n_try < 5:
 
-        sleep(300)
-        return load_account()
+        try:
+            connections.close_all()
+            account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
+        except Exception:
+            sleep(1)
+            return load_account(n_try=n_try + 1)
+
+        if account:
+            try:
+                account = Account.objects.filter(pk=account.pk).first()
+                account.is_busy = True
+                account.save()
+                return account
+            except Exception:
+                sleep(1)
+                return load_account(n_try=n_try + 1)
+        else:
+            try:
+                accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
+                delta = timezone.timedelta(hours=24)
+                for acc in accounts:
+                    if acc.rate_limit_date + delta > timezone.now():
+                        release_account(acc)
+                        return acc
+            except Exception:
+                sleep(1)
+                return load_account(n_try=n_try + 1)
+
+            sleep(300)
+            return load_account(n_try=n_try + 1)
 
 
 def load_proxy():
@@ -111,35 +117,44 @@ def _check_proxy(proxy_str):
         return False
 
 
-def mark_account_dead(account):
-    try:
-        account.is_alive = False
-        account.is_busy = False
-        account.save()
-    except Exception:
-        sleep(1)
-        mark_account_dead(account)
+def mark_account_dead(account, n_try=0):
+    if n_try < 5:
+        try:
+            connections.close_all()
+            account = Account.objects.filter(pk=account.pk).first()
+            account.is_alive = False
+            account.is_busy = False
+            account.save()
+        except Exception:
+            sleep(1)
+            mark_account_dead(account, n_try=n_try + 1)
 
 
-def mark_account_rate_limited(account):
-    try:
-        account.is_busy = False
-        account.is_rate_limited = True
-        account.rate_limit_date = timezone.now()
-        account.save()
-    except Exception:
-        sleep(1)
-        mark_account_rate_limited(account)
+def mark_account_rate_limited(account, n_try=0):
+    if n_try < 5:
+        try:
+            connections.close_all()
+            account = Account.objects.filter(pk=account.pk).first()
+            account.is_busy = False
+            account.is_rate_limited = True
+            account.rate_limit_date = timezone.now()
+            account.save()
+        except Exception:
+            sleep(1)
+            mark_account_rate_limited(account, n_try=n_try + 1)
 
 
-def release_account(account):
-    try:
-        account.is_busy = False
-        account.is_rate_limited = False
-        account.save()
-    except Exception:
-        sleep(1)
-        release_account(account)
+def release_account(account, n_try=0):
+    if n_try < 5:
+        try:
+            connections.close_all()
+            account = Account.objects.filter(pk=account.pk).first()
+            account.is_busy = False
+            account.is_rate_limited = False
+            account.save()
+        except Exception:
+            sleep(1)
+            release_account(account, n_try=n_try + 1)
 
 
 def create_proxy(proxy: str, period: int):
@@ -179,4 +194,3 @@ def del_expired_proxy():
     except Exception:
         sleep(1)
         del_expired_proxy()
-
