@@ -147,6 +147,7 @@ def _start_parsing(parser):
         save_parsing_result(parser=parser, result=result)
 
     else:
+        parser = Parser.objects.filter(pk=parser.pk).first()
         parser.status = 0
         parser.error = vk.errors if vk.errors else error
         parser.finish_date = timezone.now()

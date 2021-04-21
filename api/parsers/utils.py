@@ -47,6 +47,7 @@ def save_parsing_result(parser, result):
 
     if audio_objects:
         Audio.objects.bulk_create(audio_objects, batch_size=40)
+        parser = Parser.objects.filter(pk=parser.pk).first()
         parser.savers_count = _len_parser_savers_count(audio_objects)
         parser.audios_count = len(audio_objects)
         parser.save()
@@ -256,6 +257,7 @@ def _create_audio_obj(audio, parser):
 
 
 def _save_results_error(parser):
+    parser = Parser.objects.filter(pk=parser.pk).first()
     parser.status = 0
     parser.error = 'Error with saving results'
     parser.finish_date = timezone.now()
