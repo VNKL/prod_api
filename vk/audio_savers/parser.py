@@ -496,6 +496,7 @@ class AudioSaversParser(VkEngine):
                 posts.extend(resp['items'])
             if resp and 'next_from' in resp.keys():
                 next_from = resp['next_from']
+        posts.reverse()
         return posts
 
     def _get_post(self, post_id):
