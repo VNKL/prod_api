@@ -180,14 +180,14 @@ def pars_playlists_from_post(post):
 
 
 def get_cover_from_obj(obj):
-    if 'photo_300' in obj.keys():
+    if 'photo_1200' in obj.keys():
+        return obj['photo_1200']
+    elif 'photo_600' in obj.keys():
+        return obj['photo_600']
+    elif 'photo_300' in obj.keys():
         return obj['photo_300']
     elif 'photo_270' in obj.keys():
         return obj['photo_270']
-    elif 'photo_600' in obj.keys():
-        return obj['photo_600']
-    elif 'photo_1200' in obj.keys():
-        return obj['photo_1200']
 
 
 def get_artist_and_title_from_reference(reference):

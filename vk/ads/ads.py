@@ -23,6 +23,7 @@ class VkAds(VkEngine):
         self.ads_token = ads_token
         self.ads_errors = []
         self.ads_n_try = 0
+        self.playlist_cover = None
 
     def _get_ads_response(self, url, data, captcha_sid=None, captcha_key=None):
         """
@@ -366,10 +367,25 @@ class VkAds(VkEngine):
             reference['playlist']['owner_id'] = resp['playlist']['owner_id']
             reference['playlist']['playlist_id'] = resp['playlist']['id']
             reference['playlist']['is_reference'] = False
+            self._upload_playlist_cover(reference)
         else:
             reference['playlist']['is_reference'] = True
 
         return reference
+
+    def _upload_playlist_cover(self, reference):
+        if not self.playlist_cover:
+            cover_url = reference['cover_url']
+            self.playlist_cover = requests.get(cover_url).content
+
+        params = {'owner_id': reference['playlist']['owner_id'], 'playlist_id': reference['playlist']['playlist_id']}
+        resp = self._api_response('photos.getAudioPlaylistCoverUploadServer', params=params)
+        if resp and 'upload_url' in resp.keys():
+            upload_url = resp['upload_url']
+            resp = requests.post(upload_url, files={'file': self.playlist_cover}).json()
+            if resp and 'hash' in resp.keys() and 'photo' in resp.keys():
+                img_hash, img_photo = resp['hash'], resp['photo']
+                self._api_response('audio.setPlaylistCoverPhoto', params={'hash': img_hash, 'photo': img_photo})
 
     def _replicate_audios(self, fake_group_id, reference_orig):
         reference = copy.deepcopy(reference_orig)
