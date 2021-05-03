@@ -144,7 +144,7 @@ CORS_ORIGIN_WHITELIST = prod_settings.CORS_ORIGIN_WHITELIST if PRODUCTION else d
 
 JWT_AUTH = {
     # how long the original token is valid for
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=10),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=30),
 
     # allow refreshing of tokens
     'JWT_ALLOW_REFRESH': True,
