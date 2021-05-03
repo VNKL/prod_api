@@ -11,6 +11,15 @@ def create_campaign(user, data):
     return {'campaign_id': campaign.pk}
 
 
+def delete_campaign(user, data):
+    campaign = Campaign.objects.filter(owner=user, campaign_id=data['id']).first()
+    if not campaign:
+        return {'error': f'not found or no permissions to campaign with id {data["id"]}'}
+
+    campaign.delete()
+    return {'response': f"campaign with id {data['id']} was deleted"}
+
+
 def create_automate(user, data):
     campaign = Campaign.objects.filter(owner=user, campaign_id=data['campaign_id']).first()
     if campaign:

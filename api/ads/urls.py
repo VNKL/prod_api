@@ -10,6 +10,7 @@ urlpatterns = [
     path('.getCampaign', GetCampaignView.as_view()),
     path('.getAllCampaigns', GetAllCampaigns.as_view()),
     path('.createCampaign', CreateCampaignView.as_view()),
+    path('.deleteCampaign', DeleteCampaignView.as_view()),
     path('.updateCampaignStats', UpdateCampaignStatsView.as_view()),
     path('.updateSegmentSizes', UpdateSegmentSizesView.as_view()),
     path('.getAutomate', GetAutomateView.as_view()),
