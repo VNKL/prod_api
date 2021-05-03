@@ -44,11 +44,14 @@ class MooscleParser:
         return result
 
     def _get_mooscle_chart_batch(self, url, service_id):
-        if 'admin-ajax.php' in url:
-            html = self.session.get(url).json()['content']
-            track_list = BeautifulSoup(html, 'lxml')
-        else:
-            html = self.session.get(url).text
-            soup = BeautifulSoup(html, 'lxml')
-            track_list = soup.find(id=service_id)
-        return track_list
+        try:
+            if 'admin-ajax.php' in url:
+                html = self.session.get(url).json()['content']
+                track_list = BeautifulSoup(html, 'lxml')
+            else:
+                html = self.session.get(url).text
+                soup = BeautifulSoup(html, 'lxml')
+                track_list = soup.find(id=service_id)
+            return track_list
+        except Exception:
+            return []
