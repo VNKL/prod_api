@@ -15,7 +15,7 @@ from api.parsers.serializers import *
 from api.users.models import User
 from api.users.permissions import ParsersPermission
 from .models import Parser
-from .utils import create_parser, parsing_results_to_csv_filename, parsing_results_to_filebody
+from .utils import create_parser, delete_parser, parsing_results_to_csv_filename, parsing_results_to_filebody
 
 
 from multiprocessing import Process
@@ -57,6 +57,20 @@ class ParsersGetView(views.APIView):
             else:
                 parser = ParserSerializer(parser)
             return Response(parser.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteParserView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, ParsersPermission]
+
+    def get(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = ParserGetSerializer(data=request.query_params)
+        if serializer.is_valid():
+            result = delete_parser(user=user, data=serializer.validated_data)
+            if list(result.keys())[0] == 'error':
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            return Response(result, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

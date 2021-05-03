@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import ParsersIndexView, ParsersAddView, ParsersGetView,  ParsersGetAllView, \
-    ParsersGetAudioView, ParsersSearchAudioView, ParsersDownloadView, CSVDownloadView
+    ParsersGetAudioView, ParsersSearchAudioView, ParsersDownloadView, CSVDownloadView, DeleteParserView
 
 
 app_name = 'parsers'
@@ -11,6 +11,7 @@ urlpatterns = [
     path('.add', ParsersAddView.as_view()),
     path('.get', ParsersGetView.as_view()),
     path('.getAll', ParsersGetAllView.as_view()),
+    path('.delete', DeleteParserView.as_view()),
     path('.getAudio', ParsersGetAudioView.as_view()),
     path('.searchAudio', ParsersSearchAudioView.as_view()),
     path('.download', ParsersDownloadView.as_view()),

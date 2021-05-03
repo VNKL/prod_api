@@ -38,6 +38,19 @@ def create_parser(user, data):
     return {'parser_id': parser.pk}
 
 
+def delete_parser(user, data):
+    parser = Parser.objects.filter(owner=user, pk=data['id']).first()
+    if not parser:
+        return {'error': f'not found or no permissions to parser with id {data["id"]}'}
+
+    zip_path = parser.result_path
+    if zip_path:
+        os.remove(zip_path)
+
+    parser.delete()
+    return {'response': f"parser with id {data['id']} was deleted"}
+
+
 def save_parsing_result(parser, result):
     audio_objects = []
     for audio in result:
