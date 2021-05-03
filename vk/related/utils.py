@@ -77,7 +77,8 @@ def code_for_get_related_cards(related_links):
     return code
 
 
-def filter_artist_cards(artist_cards, listens=25000, n_releases=5, last_days=60, median_days=60, genres=None):
+def filter_artist_cards(artist_cards, listens_min=25000, listens_max=150000, n_releases=5,
+                        last_days=60, median_days=60, genres=None):
     filtered_cards = []
     if not artist_cards:
         return filtered_cards
@@ -86,7 +87,7 @@ def filter_artist_cards(artist_cards, listens=25000, n_releases=5, last_days=60,
         if 'playlists' in card.keys() and card['playlists']:
             y = n_releases if len(card['playlists']) > n_releases else None
             releases = card['playlists'][:y]
-            check = _filter_artist_by_listens(releases, listens)
+            check = _filter_artist_by_listens(releases, listens_min, listens_max)
             if check:
                 check = _filter_artist_by_last_days(releases, last_days)
             if check:
@@ -116,9 +117,9 @@ def get_genres_from_releases(releases):
     return releases_genres
 
 
-def _filter_artist_by_listens(releases, listens):
+def _filter_artist_by_listens(releases, listens_min, listens_max):
     median_listens = median([x['plays'] for x in releases])
-    if median_listens >= listens:
+    if listens_max >= median_listens >= listens_min:
         return True
 
 

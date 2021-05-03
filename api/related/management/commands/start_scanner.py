@@ -33,7 +33,7 @@ def _start_scanning(scanner):
     error = {'error_msg': f'Error in scanner {scanner.pk}'}
 
     result = vk.get_related_artists(artist_url=scanner.artist_url,
-                                    listens=scanner.listens,
+                                    listens_min=scanner.listens,
                                     n_releases=scanner.n_releases,
                                     last_days=scanner.last_days,
                                     median_days=scanner.median_days,
