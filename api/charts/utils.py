@@ -21,7 +21,7 @@ from api.settings import CHARTS_FULL_NAMES
 
 def get_chart(service, date=None):
     if not date:
-        date = datetime.now().date()
+        date = timezone.now().date()
 
     chart = get_object_or_404(Chart, date=date, service=service)
     return ChartSerializer(chart).data
@@ -29,7 +29,7 @@ def get_chart(service, date=None):
 
 def get_all_charts(date=None):
     if not date:
-        date = datetime.now().date()
+        date = timezone.now().date()
 
     chart = get_list_or_404(Chart, date=date)
     return ChartSerializer(chart, many=True).data

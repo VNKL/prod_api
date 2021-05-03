@@ -21,7 +21,7 @@ class ChartsIndexView(views.APIView):
 
 
 class ChartsAddView(views.APIView):
-    permission_classes = [permissions.IsAdminUser, ChartsPermission]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         settings = ChartAddSerializer(data=request.query_params)
@@ -32,7 +32,7 @@ class ChartsAddView(views.APIView):
 
 
 class ChartsAddAllView(views.APIView):
-    permission_classes = [permissions.IsAdminUser, ChartsPermission]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         serializer = ChartAddAllSerializer(data=request.query_params)
@@ -45,7 +45,7 @@ class ChartsAddAllView(views.APIView):
 
 
 class ChartsAddPeriodView(views.APIView):
-    permission_classes = [permissions.IsAdminUser, ChartsPermission]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         serializer = ChartAddPeriodSerializer(data=request.query_params)
@@ -58,7 +58,7 @@ class ChartsAddPeriodView(views.APIView):
 
 
 class ChartsAddAllPeriodView(views.APIView):
-    permission_classes = [permissions.IsAdminUser, ChartsPermission]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         serializer = ChartAddAllPeriodSerializer(data=request.query_params)

@@ -7,7 +7,7 @@ SERVICES = [[key, val] for key, val in CHARTS_FULL_NAMES.items()]
 
 
 class Chart(models.Model):
-    date = models.DateTimeField()
+    date = models.DateField()
     service = models.CharField(max_length=20, choices=SERVICES)
 
     def __str__(self):
@@ -17,7 +17,7 @@ class Chart(models.Model):
 class Position(models.Model):
     chart = models.ForeignKey(Chart, related_name='positions', on_delete=models.CASCADE)
     service = models.CharField(max_length=20, choices=SERVICES)
-    date = models.DateTimeField()
+    date = models.DateField()
     current = models.IntegerField()
     previous = models.IntegerField(blank=True, null=True)
     delta = models.IntegerField(blank=True, null=True)
