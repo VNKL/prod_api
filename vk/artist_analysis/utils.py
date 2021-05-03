@@ -206,7 +206,7 @@ def simplify_playlist_obj(playlist):
 
 
 def name_from_item(item):
-    if not item:
+    if not item or 'main_artists' not in item.keys():
         return None
 
     name = ''
