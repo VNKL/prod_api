@@ -41,7 +41,8 @@ def start_parser(parser_id):
 
 def _get_parsing_result(function, params, parser):
     db.connections.close_all()
-    result_dict = Manager().dict()
+    ticket_manager = Manager()
+    result_dict = ticket_manager.dict()
     process = Process(target=_do_parser_process, args=(function, params, result_dict))
     process.start()
 
@@ -122,12 +123,11 @@ def _start_parsing(parser):
     else:
         result = None
 
-    if result:
-        save_parsing_result(parser=parser, result=result)
-
-    else:
-        parser = Parser.objects.filter(pk=parser.pk).first()
-        if parser:
+    parser = Parser.objects.filter(pk=parser.pk).first()
+    if parser:
+        if result:
+            save_parsing_result(parser=parser, result=result)
+        else:
             parser.status = 4 if error == 'parser was stopped or removed' else 0
             parser.error = vk.errors if vk.errors else error
             parser.finish_date = timezone.now()

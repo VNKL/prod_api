@@ -13,13 +13,16 @@ from vk.engine import VkEngine
 def get_audio_savers_multiprocess(audios, n_threads):
 
     audios_batches = _batch_audios_list(audios, n_threads)
-    result_list = Manager().list()
+    parser_manager = Manager()
+    result_list = parser_manager.list()
     processes = [Process(target=_pars_audios_batch, args=(x, result_list)) for x in audios_batches]
     for p in processes:
         p.start()
         sleep(1)
     for p in processes:
         p.join()
+
+    result_list = list(result_list)
     return result_list
 
 
