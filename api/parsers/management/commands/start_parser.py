@@ -1,12 +1,12 @@
 from time import sleep
 from random import uniform
+from multiprocessing import Process, Manager
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand
 from django import db
 
-from api.parsers.models import Parser, Audio
-from api.parsers.serializers import ParserExtendedSerializer, AudioSerializer
+from api.parsers.models import Parser
 from api.parsers.utils import save_parsing_result
 from vk.audio_savers.parser import AudioSaversParser
 
@@ -39,13 +39,42 @@ def start_parser(parser_id):
             parser.save()
 
 
-def _get_parsing_result(function, params):
+def _get_parsing_result(function, params, parser):
+    db.connections.close_all()
+    result_dict = Manager().dict()
+    process = Process(target=_do_parser_process, args=(function, params, result_dict))
+    process.start()
+
+    while not _check_stop(process, parser):
+        sleep(uniform(10, 40))
+
+    if result_dict and 'result' in result_dict.keys() and 'error' in result_dict.keys():
+        return result_dict['result'], result_dict['error']
+    else:
+        return None, 'parser was stopped or removed'
+
+
+def _check_stop(process, parser):
+    process.join(timeout=0)
+    if not process.is_alive():
+        return True
+
+    db.connections.close_all()
+    parser = Parser.objects.filter(pk=parser.pk).first()
+    if not parser or parser.status == 0 or parser.status == 2 or parser.status == 4:
+        process.terminate()
+        return True
+
+    return False
+
+
+def _do_parser_process(function, params, result_dict):
     result, error = None, None
     try:
         result = function(**params)
     except Exception:
         error = 'Exceptional Error'
-    return result, error
+    result_dict.update({'result': result, 'error': error})
 
 
 def _start_parsing(parser):
@@ -62,33 +91,33 @@ def _start_parsing(parser):
 
     if method == 'get_by_artist_url':
         params['artist_card_url'] = parser.param
-        result, error = _get_parsing_result(vk.get_by_artist_url, params)
+        result, error = _get_parsing_result(vk.get_by_artist_url, params, parser)
 
     elif method == 'get_by_track_name':
         params['track_name'] = parser.param
-        result, error = _get_parsing_result(vk.get_by_track_name, params)
+        result, error = _get_parsing_result(vk.get_by_track_name, params, parser)
 
     elif method == 'get_by_group':
         params['group'] = parser.param
-        result, error = _get_parsing_result(vk.get_by_group, params)
+        result, error = _get_parsing_result(vk.get_by_group, params, parser)
 
     elif method == 'get_by_playlist':
         params['playlist_url'] = parser.param
-        result, error = _get_parsing_result(vk.get_by_playlist, params)
+        result, error = _get_parsing_result(vk.get_by_playlist, params, parser)
 
     elif method == 'get_by_newsfeed':
         params['q'] = parser.param
-        result, error = _get_parsing_result(vk.get_by_newsfeed, params)
+        result, error = _get_parsing_result(vk.get_by_newsfeed, params, parser)
 
     elif method == 'get_by_post':
         params['post_url'] = parser.param
-        result, error = _get_parsing_result(vk.get_by_post, params)
+        result, error = _get_parsing_result(vk.get_by_post, params, parser)
 
     elif method == 'get_by_chart':
-        result, error = _get_parsing_result(vk.get_by_chart, params)
+        result, error = _get_parsing_result(vk.get_by_chart, params, parser)
 
     elif method == 'get_by_new_releases':
-        result, error = _get_parsing_result(vk.get_by_new_releases, params)
+        result, error = _get_parsing_result(vk.get_by_new_releases, params, parser)
 
     else:
         result = None
@@ -98,10 +127,11 @@ def _start_parsing(parser):
 
     else:
         parser = Parser.objects.filter(pk=parser.pk).first()
-        parser.status = 0
-        parser.error = vk.errors if vk.errors else error
-        parser.finish_date = timezone.now()
-        parser.save()
+        if parser:
+            parser.status = 4 if error == 'parser was stopped or removed' else 0
+            parser.error = vk.errors if vk.errors else error
+            parser.finish_date = timezone.now()
+            parser.save()
 
 
 def _wait_queue(parser):
@@ -113,7 +143,7 @@ def _wait_queue(parser):
             for n, earlier_parser in enumerate(earlier_parsers):
                 try:
                     earlier_parser.refresh_from_db()
-                    if earlier_parser.status in [0, 2]:
+                    if earlier_parser.status in [0, 2, 4]:
                         earlier_running[n] = False
                 except Exception:
                     earlier_running[n] = False
