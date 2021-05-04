@@ -12,8 +12,8 @@ class ArtistSerializer(serializers.ModelSerializer):
 class ScannerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scanner
-        fields = 'id', 'artist_url', 'artist_name', 'related_count', 'photo_url', 'listens', 'n_releases', \
-                 'last_days', 'median_days', 'recurse', 'start_date', 'finish_date'
+        fields = 'id', 'artist_url', 'artist_name', 'related_count', 'photo_url', 'listens_min', 'listens_max', \
+                 'n_releases', 'last_days', 'median_days', 'recurse', 'status', 'start_date', 'finish_date'
 
 
 class ScannerExtendedSerializer(serializers.ModelSerializer):
@@ -25,13 +25,14 @@ class ScannerExtendedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Scanner
-        fields = 'id', 'artist_url', 'artist_name', 'related_count', 'photo_url', 'listens', 'n_releases', \
-                 'last_days', 'median_days', 'recurse', 'start_date', 'finish_date', 'artists'
+        fields = 'id', 'artist_url', 'artist_name', 'related_count', 'photo_url', 'listens_min', 'listens_max', \
+                 'n_releases', 'last_days', 'median_days', 'recurse', 'start_date', 'finish_date', 'artists'
 
 
 class CreateScannerSerializer(serializers.Serializer):
     url = serializers.CharField()
-    listens = serializers.IntegerField()
+    listens_min = serializers.IntegerField()
+    listens_max = serializers.IntegerField()
     n_releases = serializers.IntegerField()
     last_days = serializers.IntegerField()
     median_days = serializers.IntegerField()

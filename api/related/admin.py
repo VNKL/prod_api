@@ -5,8 +5,9 @@ from api.related.models import Artist, Scanner
 
 @admin.register(Scanner)
 class ScannerAdmin(admin.ModelAdmin):
-    list_display = 'id', 'owner', 'artist_url', 'status', 'error', 'artist_name', 'related_count', 'listens', \
-                   'n_releases', 'last_days', 'median_days', 'recurse', 'start_date', 'finish_date'
+    list_display = 'id', 'owner', 'artist_url', 'status', 'error', 'artist_name', 'related_count', \
+                   'listens_min', 'listens_max', 'n_releases', 'last_days', 'median_days', 'recurse', \
+                   'start_date', 'finish_date'
 
 
 @admin.register(Artist)

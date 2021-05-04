@@ -4,7 +4,7 @@ from api.users.models import User
 
 
 class Scanner(models.Model):
-    STATUS_CHOICES = [[0, 'Ошибка'], [1, 'Выполняется'], [2, 'Завершено']]
+    STATUS_CHOICES = [[0, 'Ошибка'], [1, 'Выполняется'], [2, 'Завершено'], [3, 'Ожидает очереди'], [4, 'Отменено']]
 
     owner = models.ForeignKey(User, related_name='related_scanners', on_delete=models.CASCADE)
     status = models.IntegerField(blank=False, null=False, choices=STATUS_CHOICES)
@@ -13,7 +13,8 @@ class Scanner(models.Model):
     artist_name = models.TextField(blank=True, null=True)
     photo_url = models.TextField(blank=True, null=True)
     related_count = models.BigIntegerField(blank=True, null=True)
-    listens = models.BigIntegerField()
+    listens_min = models.BigIntegerField(default=25000)
+    listens_max = models.BigIntegerField(default=75000)
     n_releases = models.IntegerField(default=5)
     last_days = models.IntegerField(default=60)
     median_days = models.IntegerField(default=60)
