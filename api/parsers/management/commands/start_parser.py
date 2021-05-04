@@ -39,6 +39,15 @@ def start_parser(parser_id):
             parser.save()
 
 
+def _get_parsing_result(function, params):
+    result, error = None, None
+    try:
+        result = function(**params)
+    except Exception:
+        error = 'Exceptional Error'
+    return result, error
+
+
 def _start_parsing(parser):
 
     _wait_queue(parser)
@@ -46,99 +55,40 @@ def _start_parsing(parser):
     db.connections.close_all()
     vk = AudioSaversParser()
     method = parser.method
+    params = {'count_only': parser.count_only}
     error = {'method': parser.method,
              'param': parser.param,
              'error_msg': f'Error in parser {parser.pk}'}
 
     if method == 'get_by_artist_url':
-        try:
-            result = vk.get_by_artist_url(artist_card_url=parser.param, count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        params['artist_card_url'] = parser.param
+        result, error = _get_parsing_result(vk.get_by_artist_url, params)
 
     elif method == 'get_by_track_name':
-        try:
-            result = vk.get_by_track_name(track_name=parser.param, count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        params['track_name'] = parser.param
+        result, error = _get_parsing_result(vk.get_by_track_name, params)
 
     elif method == 'get_by_group':
-        try:
-            result = vk.get_by_group(group=parser.param, count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        params['group'] = parser.param
+        result, error = _get_parsing_result(vk.get_by_group, params)
 
     elif method == 'get_by_playlist':
-        try:
-            result = vk.get_by_playlist(playlist_url=parser.param, count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        params['playlist_url'] = parser.param
+        result, error = _get_parsing_result(vk.get_by_playlist, params)
 
     elif method == 'get_by_newsfeed':
-        try:
-            result = vk.get_by_newsfeed(q=parser.param, count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        params['q'] = parser.param
+        result, error = _get_parsing_result(vk.get_by_newsfeed, params)
 
     elif method == 'get_by_post':
-        try:
-            result = vk.get_by_post(post_url=parser.param, count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        params['post_url'] = parser.param
+        result, error = _get_parsing_result(vk.get_by_post, params)
 
     elif method == 'get_by_chart':
-        try:
-            result = vk.get_by_chart(count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        result, error = _get_parsing_result(vk.get_by_chart, params)
 
     elif method == 'get_by_new_releases':
-        try:
-            result = vk.get_by_new_releases(count_only=parser.count_only)
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
-
-    elif method == 'get_by_parser':
-        try:
-            finded_parser = Parser.objects.filter(owner=parser.owner, pk=parser.param).first()
-            if finded_parser:
-                data = ParserExtendedSerializer(finded_parser).data
-                result = vk.get_by_audios(audio_objects=data['audios'], count_only=parser.count_only, n_threads=10)
-            else:
-                result = None
-                error = {'method': parser.method, 'param': parser.param,
-                         'error_msg': f'Error in parser {parser.pk}, not found'}
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
-
-    elif method == 'get_by_audio':
-        try:
-            finded_audio = Audio.objects.filter(pk=parser.param).first()
-            if finded_audio:
-                data = AudioSerializer(finded_audio).data
-                if isinstance(data['savers'], str):
-                    data['savers'] = data['savers'].split(',')
-                    result = [data]
-                else:
-                    result = None
-                    error = {'method': parser.method, 'param': parser.param,
-                             'error_msg': f'Error in parser {parser.pk}, savers not found'}
-            else:
-                result = None
-                error = {'method': parser.method, 'param': parser.param,
-                         'error_msg': f'Error in parser {parser.pk}, audio not found'}
-        except Exception:
-            result = None
-            error = 'Exceptional Error'
+        result, error = _get_parsing_result(vk.get_by_new_releases, params)
 
     else:
         result = None
