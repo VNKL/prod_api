@@ -5,7 +5,7 @@ from .models import Scanner
 
 def create_scanner(user, data):
     scanner = Scanner(owner=user,
-                      status=1,
+                      status=3,
                       start_date=timezone.now(),
                       artist_url=data['url'],
                       listens_min=data['listens_min'],

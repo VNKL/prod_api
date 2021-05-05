@@ -69,3 +69,10 @@ class VkRelatedParser(VkEngine):
             simple_cards = utils.clean_doubles_in_simple_cards(simple_cards, artist_name)
             result = {'artist_name': artist_name, 'photo_url': photo_url, 'related': simple_cards}
             return result
+
+    def get_artist_card_info(self, artist_url):
+        artist_card = self.get_artist_card(artist_url)
+        if artist_card:
+            artist_name, _, photo_url = utils.get_artist_info_from_card_obj(artist_card)
+            return artist_name, photo_url
+        return None, None
