@@ -13,6 +13,14 @@ class WallParser(VkEngine):
         self.current_offset = 100
         self.is_offset_limited = False
 
+    def get_group_info(self, group):
+        group_id = self._get_group_id(group)
+        if group_id:
+            resp = self._api_response('groups.getById', {'group_id': str(group_id)})
+            if resp and 'name' in resp[0].keys() and 'photo_200' in resp[0].keys():
+                return resp[0]['name'], resp[0]['photo_200']
+        return None, None
+
     def get_group_posts(self, group, date_from=None, date_to=None, with_audio=False,
                         with_dark_posts=False, dark_posts_only=False, pars_playlists=True,
                         pars_audio_savers=True):
@@ -140,6 +148,10 @@ class WallParser(VkEngine):
     def _get_audios_from_playlists(self, posts_with_playlist):
         processed_posts = []
         for post in posts_with_playlist:
+            if 'attachments' not in post.keys():
+                processed_posts.append(post)
+                continue
+
             pl_url = [x['link']['url'] for x in post['attachments'] if
                       x['type'] == 'link' and 'playlist' in x['link']['url']]
             pl_title = [x['link']['title'] for x in post['attachments'] if

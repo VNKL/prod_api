@@ -4,15 +4,13 @@ from api.users.models import User
 
 
 class Grabber(models.Model):
-    STATUS_CHOICES = [
-        [0, 'Ошибка'],
-        [1, 'Выполняется'],
-        [2, 'Завершено']
-    ]
+    STATUS_CHOICES = [[0, 'Ошибка'], [1, 'Выполняется'], [2, 'Завершено'], [3, 'Ожидает очереди'], [4, 'Отменено']]
     owner = models.ForeignKey(User, related_name='grabbers', on_delete=models.CASCADE)
     status = models.IntegerField(blank=False, null=False, choices=STATUS_CHOICES)
     error = models.TextField(blank=True, null=True)
     group = models.TextField()
+    group_name = models.TextField(blank=True, null=True)
+    group_ava = models.TextField(blank=True, null=True)
     with_audio = models.BooleanField(default=True)
     ads_only = models.BooleanField(default=False)
     with_ads = models.BooleanField(default=False)

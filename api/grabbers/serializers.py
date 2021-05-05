@@ -49,8 +49,9 @@ class GrabberExtendedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Grabber
-        fields = 'id', 'owner', 'status', 'error', 'with_audio', 'ads_only', 'with_ads', \
-                 'date_from', 'date_to', 'start_date', 'finish_date', 'posts_count', 'posts'
+        fields = 'id', 'owner', 'group', 'group_name', 'group_ava', 'status', 'error', \
+                 'with_audio', 'ads_only', 'with_ads', 'date_from', 'date_to', 'start_date', 'finish_date', \
+                 'posts_count', 'posts'
 
 
 class GrabberAddSerializer(serializers.Serializer):

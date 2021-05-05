@@ -1,8 +1,12 @@
 from collections import Counter
 from datetime import datetime
+from random import uniform
+from time import sleep
+from multiprocessing import Process, Manager
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.grabbers.models import Grabber, Post, Playlist, Audio
 from vk.wall_grabbing.parser import WallParser
@@ -30,17 +34,58 @@ def start_grabber(grabber_id):
         _start_grabbing(grabber)
 
 
-def _start_grabbing(grabber):
+def _check_stop(process, grabber):
+    process.join(timeout=0)
+    if not process.is_alive():
+        return True
 
+    db.connections.close_all()
+    grabber = Grabber.objects.filter(pk=grabber.pk).first()
+    if not grabber or grabber.status == 0 or grabber.status == 2 or grabber.status == 4:
+        process.terminate()
+        return True
+
+    return False
+
+
+def _do_grabbing_process(grabber, result_dict):
     vk = WallParser()
-    error = {'error_msg': f'Error in grabber {grabber.pk}'}
-
     result = vk.get_group_posts(group=grabber.group,
                                 date_from=grabber.date_from,
                                 date_to=grabber.date_to,
                                 with_audio=grabber.with_audio,
                                 with_dark_posts=grabber.with_ads,
                                 dark_posts_only=grabber.ads_only)
+    result_dict['result'] = result
+
+
+def _start_grabbing(grabber):
+    _wait_queue(grabber)
+    db.connections.close_all()
+
+    vk = WallParser()
+    error = {'error_msg': f'Error in grabber {grabber.pk}'}
+
+    group_name, group_ava = vk.get_group_info(group=grabber.group)
+    if group_name and group_ava:
+        grabber.group_name = group_name
+        grabber.group_ava = group_ava
+        grabber.save()
+
+    ticket_manager = Manager()
+    result_dict = ticket_manager.dict()
+    process = Process(target=_do_grabbing_process, args=(grabber, result_dict))
+    process.start()
+
+    while not _check_stop(process, grabber):
+        sleep(uniform(10, 40))
+
+    if result_dict and 'result' in result_dict.keys():
+        result = result_dict['result']
+    else:
+        result, error = None, 'grabber was stopped or removed'
+
+    grabber = Grabber.objects.filter(pk=grabber.pk).first()
     if result:
         save_grabbing_result(grabber=grabber, result=result)
     elif not result and isinstance(result, list):
@@ -103,58 +148,36 @@ def _mark_audio_dounles(audios, counter):
 
 def _save_audio_objs(audios, post_obj):
     for audio in audios:
-        au_existed = Audio.objects.filter(owner_id=audio['owner_id'], audio_id=audio['id']).first()
-        if au_existed:
-            au_existed.posts.add(post_obj)
-            au_existed.savers_count = audio['savers_count']
-            au_existed.doubles = audio['doubles']
-            au_existed.parsing_date = timezone.now()
-            au_existed.save()
-        else:
-            au_title = audio['title']
-            if 'subtitle' in audio.keys():
-                au_title += f" ({audio['subtitle']})"
-            au_obj = Audio.objects.create(owner_id=audio['owner_id'],
-                                          audio_id=audio['id'],
-                                          artist=audio['artist'],
-                                          title=au_title,
-                                          savers_count=audio['savers_count'],
-                                          doubles=audio['doubles'],
-                                          date=datetime.fromtimestamp(audio['date']),
-                                          parsing_date=timezone.now(),
-                                          source='playlist' if 'source' in audio.keys() else 'post')
-            au_obj.posts.add(post_obj)
+        au_title = audio['title']
+        if 'subtitle' in audio.keys():
+            au_title += f" ({audio['subtitle']})"
+        au_obj = Audio.objects.create(owner_id=audio['owner_id'],
+                                      audio_id=audio['id'],
+                                      artist=audio['artist'],
+                                      title=au_title,
+                                      savers_count=audio['savers_count'],
+                                      doubles=audio['doubles'],
+                                      date=datetime.fromtimestamp(audio['date']),
+                                      parsing_date=timezone.now(),
+                                      source='playlist' if 'source' in audio.keys() else 'post')
+        au_obj.posts.add(post_obj)
 
 
 def _save_playlist_objs(playlists, post_obj):
     for playlist in playlists:
-        pl_existed = Playlist.objects.filter(owner_id=playlist['owner_id'], playlist_id=playlist['id']).first()
-        if pl_existed:
-            pl_existed.posts.add(post_obj)
-            pl_existed.listens = playlist['listens']
-            pl_existed.followers = playlist['followers']
-            pl_existed.update_date = datetime.fromtimestamp(playlist['update_time'])
-            pl_existed.parsing_date = timezone.now()
-            pl_existed.save()
-        else:
-            pl_obj = Playlist.objects.create(owner_id=playlist['owner_id'],
-                                             playlist_id=playlist['id'],
-                                             access_hash=playlist['access_hash'],
-                                             listens=playlist['listens'],
-                                             followers=playlist['followers'],
-                                             title=playlist['title'],
-                                             create_date=datetime.fromtimestamp(playlist['create_time']),
-                                             update_date=datetime.fromtimestamp(playlist['update_time']),
-                                             parsing_date=timezone.now())
-            pl_obj.posts.add(post_obj)
+        pl_obj = Playlist.objects.create(owner_id=playlist['owner_id'],
+                                         playlist_id=playlist['id'],
+                                         access_hash=playlist['access_hash'],
+                                         listens=playlist['listens'],
+                                         followers=playlist['followers'],
+                                         title=playlist['title'],
+                                         create_date=datetime.fromtimestamp(playlist['create_time']),
+                                         update_date=datetime.fromtimestamp(playlist['update_time']),
+                                         parsing_date=timezone.now())
+        pl_obj.posts.add(post_obj)
 
 
 def _save_post_obj(audios, grabber, playlists, post):
-    post_existed = Post.objects.filter(owner_id=post['owner_id'], post_id=post['id']).first()
-    if post_existed:
-        post_existed.grabbers.add(grabber)
-        return post_existed
-
     post_obj = Post.objects.create(owner_id=post['owner_id'],
                                    post_id=post['id'],
                                    is_ad=True if post['post_type'] == 'post_ads' else False,
@@ -167,3 +190,20 @@ def _save_post_obj(audios, grabber, playlists, post):
                                    date=datetime.fromtimestamp(post['date']))
     post_obj.grabbers.add(grabber)
     return post_obj
+
+
+def _wait_queue(grabber):
+    earlier_parsers = Grabber.objects.filter(owner=grabber.owner, status__in=[1, 3]).exclude(pk=grabber.pk)
+    if earlier_parsers:
+        earlier_running = [True for _ in earlier_parsers]
+        while any(earlier_running):
+            sleep(uniform(5, 15))
+            for n, earlier_parser in enumerate(earlier_parsers):
+                try:
+                    earlier_parser.refresh_from_db()
+                    if earlier_parser.status in [0, 2, 4]:
+                        earlier_running[n] = False
+                except Exception:
+                    earlier_running[n] = False
+    grabber.status = 1
+    grabber.save()

@@ -19,11 +19,11 @@ def create_scanner(user, data):
 
 
 def delete_scanner(user, data):
-    parser = Scanner.objects.filter(owner=user, pk=data['id']).first()
-    if not parser:
+    scanner = Scanner.objects.filter(owner=user, pk=data['id']).first()
+    if not scanner:
         return {'error': f'not found or no permissions to scanner with id {data["id"]}'}
 
-    parser.delete()
+    scanner.delete()
     return {'response': f"scanner with id {data['id']} was deleted"}
 
 
