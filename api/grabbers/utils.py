@@ -5,7 +5,7 @@ from .models import Grabber, Post, Playlist, Audio
 
 def create_grabber(user, data):
     grabber = Grabber(owner=user,
-                      status=1,
+                      status=3,
                       group=data['group'],
                       with_audio=data['with_audio'],
                       ads_only=data['ads_only'],
