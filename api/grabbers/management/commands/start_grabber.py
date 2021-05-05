@@ -31,7 +31,13 @@ def start_grabber(grabber_id):
     if not grabber:
         print(f'no grabber with id {grabber_id}')
     else:
-        _start_grabbing(grabber)
+        try:
+            _start_grabbing(grabber)
+        except Exception as exc:
+            grabber.status = 0
+            grabber.error = str(exc)
+            grabber.finish_date = timezone.now()
+            grabber.save()
 
 
 def _check_stop(process, grabber):
