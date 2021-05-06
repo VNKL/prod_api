@@ -98,8 +98,9 @@ class ChartsSearchView(views.APIView):
     def get(self, request):
         settings = ChartsSearchSerializer(data=request.query_params)
         if settings.is_valid():
-            chart = search(**settings.validated_data)
-            return Response(chart)
+            search_result = search(**settings.validated_data)
+            search_result = pack_search_result(search_result)
+            return Response(search_result)
         return Response(settings.errors, status.HTTP_400_BAD_REQUEST)
 
 

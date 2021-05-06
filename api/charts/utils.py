@@ -252,3 +252,29 @@ def _date_from_plus_timedelta(date_from, days):
     utc = pytz.utc
     res = utc.localize(res)
     return res
+
+
+def pack_search_result(result):
+    packed_items = []
+    for item in result:
+        if 'positions' not in item.keys():
+            packed_items.append(item)
+            continue
+
+        packed_positions = {}
+        for position in item['positions']:
+            if position['service'] not in packed_positions.keys():
+                packed_positions[position['service']] = [position]
+            else:
+                packed_positions[position['service']].append(position)
+
+        for positions in packed_positions.values():
+            positions.reverse()
+
+        dict_to_list = [{'service': service, 'positions': positions} for service, positions in packed_positions.items()]
+        dict_to_list.sort(key=lambda x: x['service'])
+
+        item['positions'] = dict_to_list
+        packed_items.append(item)
+
+    return packed_items
