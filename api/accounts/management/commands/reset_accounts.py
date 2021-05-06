@@ -43,7 +43,7 @@ def reset_all(is_busy=False, is_rate_limited=False, is_alive=False, rate_limit_d
         if is_busy:
             acc.is_busy = False
         if is_alive:
-            acc.is_alive = False
+            acc.is_alive = True
         if is_rate_limited:
             acc.is_rate_limited = False
         if rate_limit_date:
