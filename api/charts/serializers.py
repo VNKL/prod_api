@@ -62,7 +62,7 @@ class TrackForSearchExtendedSerializer(serializers.ModelSerializer):
             filter_params['delta__isnull'] = False
         if 'dates' in self.context.keys():
             filter_params['date__in'] = self.context['dates']
-        return Position.objects.filter(**filter_params)
+        return Position.objects.filter(**filter_params).order_by('-date')
 
     def _get_max_delta_position(self, instance):
         positions = self._get_positions(instance)

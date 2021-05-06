@@ -268,9 +268,6 @@ def pack_search_result(result):
             else:
                 packed_positions[position['service']].append(position)
 
-        for positions in packed_positions.values():
-            positions.reverse()
-
         dict_to_list = [{'service': service, 'positions': positions} for service, positions in packed_positions.items()]
         dict_to_list.sort(key=lambda x: x['service'])
 
