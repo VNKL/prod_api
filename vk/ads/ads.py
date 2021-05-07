@@ -296,6 +296,9 @@ class VkAds(VkEngine):
         if reference['playlist']:
             reference = self._replicate_playlist(fake_group_id, reference)
 
+        if not reference:
+            return None
+
         attachments = utils.get_attachments_for_post(reference)
         params = {'owner_id': group_id * -1, 'message': reference['text'], 'attachments': attachments, 'signed': 0}
         resp = self._ads_response('wall.postAdsStealth', params)
@@ -336,7 +339,7 @@ class VkAds(VkEngine):
         data = json.dumps(data)
         self._ads_response('ads.updateCampaigns', {'account_id': cabinet_id, 'data': data})
 
-    def _replicate_playlist(self, fake_group_id, reference_orig):
+    def _replicate_playlist(self, fake_group_id, reference_orig, n_try=0):
         reference = copy.deepcopy(reference_orig)
 
         pl_audios = reference['playlist']['audios']
@@ -355,6 +358,11 @@ class VkAds(VkEngine):
                     audio['audio_id'] = audio_id
                     audio['in_playlist'] = True
                     reference['playlist']['audios'].append(audio)
+            else:
+                if n_try < 2:
+                    return self._replicate_playlist(fake_group_id, reference_orig, n_try=n_try + 1)
+                else:
+                    return None
             sleep(uniform(1, 4))
 
         pl_audios = [f"{x['owner_id']}_{x['audio_id']}" for x in reference['playlist']['audios']]
@@ -363,13 +371,19 @@ class VkAds(VkEngine):
         resp = self._api_response('execute.savePlaylist', {'owner_id': fake_group_id * -1,
                                                            'title': reference['playlist']['title'],
                                                            'audio_ids_to_add': pl_audios_str})
-        if resp:
+
+        if isinstance(resp, dict) and 'playlist' in resp.keys() and isinstance(resp['playlist'], dict) \
+                and 'owner_id' in resp['playlist'].keys() and 'id' in resp['playlist'].keys() \
+                and resp['playlist']['owner_id'] and resp['playlist']['id']:
             reference['playlist']['owner_id'] = resp['playlist']['owner_id']
             reference['playlist']['playlist_id'] = resp['playlist']['id']
             reference['playlist']['is_reference'] = False
             self._upload_playlist_cover(reference)
         else:
-            reference['playlist']['is_reference'] = True
+            if n_try < 2:
+                return self._replicate_playlist(fake_group_id, reference_orig, n_try=n_try+1)
+            else:
+                return None
 
         return reference
 
@@ -387,7 +401,7 @@ class VkAds(VkEngine):
                 img_hash, img_photo = resp['hash'], resp['photo']
                 self._api_response('audio.setPlaylistCoverPhoto', params={'hash': img_hash, 'photo': img_photo})
 
-    def _replicate_audios(self, fake_group_id, reference_orig):
+    def _replicate_audios(self, fake_group_id, reference_orig, n_try=0):
         reference = copy.deepcopy(reference_orig)
         code = utils.code_for_add_audios_in_group(audios=reference['audios'], group_id=fake_group_id)
         resp = self._execute_response(code)
@@ -396,6 +410,11 @@ class VkAds(VkEngine):
                 reference['audios'][n]['owner_id'] = fake_group_id * -1
                 reference['audios'][n]['id'] = audio_id
                 reference['audios'][n]['in_playlist'] = False
+        else:
+            if n_try < 2:
+                return self._replicate_audios(fake_group_id, reference_orig, n_try=n_try+1)
+            else:
+                return None
         return reference
 
     def _pars_playlist(self, post):

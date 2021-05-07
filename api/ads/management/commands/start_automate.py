@@ -111,6 +111,9 @@ def _update_ads(campaign, automate, vk):
 
     to_start, to_stop, to_update_cpm, cpm_list, updated_ads = [], [], [], [], []
     for ad in ads:
+        if 'Пустой сегмент' in ad.ad_name:
+            continue
+
         if automate_type == 0:
             current_cost = ad.cpl
         else:
