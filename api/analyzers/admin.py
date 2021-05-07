@@ -5,4 +5,4 @@ from .models import Analyzer
 
 @admin.register(Analyzer)
 class AnalyzerAdmin(admin.ModelAdmin):
-    list_display = 'id', 'owner', 'method', 'param', 'status', 'error', 'start_date', 'finish_date'
+    list_display = 'id', 'owner', 'method', 'param', 'status', 'error', 'artist_name', 'start_date', 'finish_date'

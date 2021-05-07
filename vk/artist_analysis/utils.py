@@ -36,6 +36,8 @@ def pars_playlists_from_card(card):
     if 'playlists' in card.keys():
         singles, albums = [], []
         for release in card['playlists']:
+            if release['album_type'] == 'playlist':
+                continue
             if release['count'] <= 5:
                 singles.append(release)
             elif release['count'] > 5:
@@ -201,7 +203,22 @@ def simplify_playlist_obj(playlist):
         'name': name_from_item(playlist),
         'listens': playlist['plays'],
         'followers': playlist['followers'],
+        'owner_id': playlist['owner_id'],
+        'playlist_id': playlist['id'],
+        'access_key': playlist['access_key'],
         'date': datetime.fromtimestamp(playlist['create_time'])
+    }
+
+def simplify_video_obj(video):
+    name = video['title']
+    if 'subtitle' in video.keys():
+        name += f' ({video["subtitle"]})'
+    return {
+        'name': name,
+        'views': video['views'],
+        'date': datetime.fromtimestamp(video['release_date'] if 'rerelease_date' in video.keys() else video['date']),
+        'owner_id': video['owner_id'],
+        'video_id': video['id']
     }
 
 
@@ -269,11 +286,12 @@ def search_chart_releases(artist, date_from=None):
                 _process_pos_median(track, pos_medians)
 
         if date_from:
-            return processed_tracks
+            return processed_tracks, None
         else:
             pos_medians = {service: round(median(pos_list)) for service, pos_list in pos_medians.items()}
             pos_medians = dict(sorted(pos_medians.items(), key=lambda item: item[1]))
             return processed_tracks, pos_medians
+    return None, None
 
 
 def _process_pos_median(track, pos_medians):
@@ -336,4 +354,4 @@ def calculate_tops_of_artist_by_chart(all_time_chart_tracks, n_top):
         return top_by_days, top_by_pos, days_median_dict
 
     else:
-        return None, None
+        return None, None, None

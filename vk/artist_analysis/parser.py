@@ -42,9 +42,9 @@ class ArtistCardParser(VkEngine):
         date_from_now = date.today() - timedelta(days=1)
 
         all_time, pos_medians = utils.search_chart_releases(artist=artist)
-        last_365 = utils.search_chart_releases(artist=artist, date_from=date_from_last_year)
-        last_90 = utils.search_chart_releases(artist=artist, date_from=date_from_last_90)
-        now = utils.search_chart_releases(artist=artist, date_from=date_from_now)
+        last_365, _ = utils.search_chart_releases(artist=artist, date_from=date_from_last_year)
+        last_90, _ = utils.search_chart_releases(artist=artist, date_from=date_from_last_90)
+        now, _ = utils.search_chart_releases(artist=artist, date_from=date_from_now)
 
         top_by_days, top_by_pos, days_medians = utils.calculate_tops_of_artist_by_chart(all_time, n_top=n_top)
 
@@ -127,7 +127,7 @@ class ArtistCardParser(VkEngine):
                     'followers_sum': af_sum,
                 },
                 'videos': {
-                    'items': [x['title'] for x in videos] if videos else [],
+                    'items': [utils.simplify_video_obj(x) for x in videos] if videos else [],
                     'count': len(videos) if videos else 0,
                     'freq': utils.calculate_videos_freq(videos),
                     'views_min': vv_min,

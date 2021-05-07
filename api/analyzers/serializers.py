@@ -6,7 +6,8 @@ from .models import Analyzer
 class AnalyzerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Analyzer
-        fields = 'id', 'owner', 'status', 'error', 'method', 'param', 'start_date', 'finish_date'
+        fields = 'id', 'owner', 'status', 'error', 'method', 'param', 'artist_name', 'photo_url', \
+                 'start_date', 'finish_date'
 
 
 class AnalyzerExtendedSerializer(serializers.ModelSerializer):
@@ -14,7 +15,8 @@ class AnalyzerExtendedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Analyzer
-        fields = 'id', 'owner', 'status', 'error', 'method', 'param', 'start_date', 'finish_date', 'result'
+        fields = 'id', 'owner', 'status', 'error', 'method', 'param', 'artist_name', 'photo_url', \
+                 'start_date', 'finish_date', 'result'
 
 
 class AnalyzerAddSerializer(serializers.Serializer):

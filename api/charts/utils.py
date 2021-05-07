@@ -239,7 +239,7 @@ def get_track(service, id):
 
 def get_dates_list(date_from=None, date_to=None):
     if not date_from:
-        date_from = date(year=2018, month=7, day=20)
+        date_from = date(year=2020, month=7, day=20)
     if not date_to:
         date_to = date.today()
 

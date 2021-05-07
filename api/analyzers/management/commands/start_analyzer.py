@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from api.analyzers.models import Analyzer
 from api.analyzers.utils import save_analyzing_result
 from vk.artist_analysis.parser import ArtistCardParser
+from vk.related.parser import VkRelatedParser
 
 
 class Command(BaseCommand):
@@ -29,6 +30,16 @@ def start_analyzer(analyzer_id):
 
 
 def _start_analyzing(analyzer):
+
+    vk = VkRelatedParser()
+    artist_name, photo_url = vk.get_artist_card_info(artist_url=analyzer.param)
+    if artist_name:
+        analyzer.artist_name = artist_name
+    if photo_url:
+        analyzer.photo_url = photo_url
+    analyzer.save()
+
+
 
     vk = ArtistCardParser()
     method = analyzer.method

@@ -14,6 +14,8 @@ class Analyzer(models.Model):
     error = models.TextField(blank=True, null=True)
     method = models.CharField(max_length=100, blank=False, null=False)
     param = models.TextField(blank=True, null=True)
+    artist_name = models.TextField(blank=True, null=True)
+    photo_url = models.TextField(blank=True, null=True)
     start_date = models.DateTimeField(blank=False, null=False)
     finish_date = models.DateTimeField(blank=True, null=True)
     result = models.TextField(blank=True, null=True)

@@ -61,6 +61,6 @@ class AnalyzerGetAllView(views.APIView):
     permission_classes = [permissions.IsAuthenticated, AnalyzersPermission]
 
     def get(self, request):
-        analyzers = Analyzer.objects.filter(owner=request.user)
+        analyzers = Analyzer.objects.filter(owner=request.user).order_by('-pk')
         serializer = AnalyzerSerializer(analyzers, many=True)
         return Response(serializer.data)
