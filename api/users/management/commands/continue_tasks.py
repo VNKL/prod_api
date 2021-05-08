@@ -64,3 +64,6 @@ def continue_tasks():
         process = Process(target=call_command, args=('start_grabber',), kwargs={'grabber_id': grabber.pk})
         process.start()
         sleep(uniform(7, 15))
+
+    process = Process(target=call_command, args=('start_charts_updater',))
+    process.start()
