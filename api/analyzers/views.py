@@ -10,7 +10,7 @@ from .serializers import *
 from api.users.models import User
 from api.users.permissions import AnalyzersPermission
 from .models import Analyzer
-from .utils import create_analyzer
+from .utils import create_analyzer, delete_analyzer
 
 
 from multiprocessing import Process
@@ -64,3 +64,17 @@ class AnalyzerGetAllView(views.APIView):
         analyzers = Analyzer.objects.filter(owner=request.user).order_by('-pk')
         serializer = AnalyzerSerializer(analyzers, many=True)
         return Response(serializer.data)
+
+
+class AnalyzerDeleteView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, AnalyzersPermission]
+
+    def get(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = AnalyzerGetSerializer(data=request.query_params)
+        if serializer.is_valid():
+            result = delete_analyzer(user=user, data=serializer.validated_data)
+            if list(result.keys())[0] == 'error':
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            return Response(result, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

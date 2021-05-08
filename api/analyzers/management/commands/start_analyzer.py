@@ -1,5 +1,10 @@
+from random import uniform
+from time import sleep
+from multiprocessing import Process, Manager
+
 from django.utils import timezone
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.analyzers.models import Analyzer
 from api.analyzers.utils import save_analyzing_result
@@ -29,7 +34,15 @@ def start_analyzer(analyzer_id):
         _start_analyzing(analyzer)
 
 
+def _do_analyzing_process(analyzer, result_dict):
+    vk = ArtistCardParser()
+    result = vk.get_by_artist_url(artist_card_url=analyzer.param)
+    result_dict['result'] = result
+
+
 def _start_analyzing(analyzer):
+    _wait_queue(analyzer)
+    db.connections.close_all()
 
     vk = VkRelatedParser()
     artist_name, photo_url = vk.get_artist_card_info(artist_url=analyzer.param)
@@ -39,25 +52,56 @@ def _start_analyzing(analyzer):
         analyzer.photo_url = photo_url
     analyzer.save()
 
+    ticket_manager = Manager()
+    result_dict = ticket_manager.dict()
+    process = Process(target=_do_analyzing_process, args=(analyzer, result_dict))
+    process.start()
 
+    while not _check_stop(process, analyzer):
+        sleep(uniform(10, 40))
 
-    vk = ArtistCardParser()
-    method = analyzer.method
-    error = {'method': analyzer.method,
-             'param': analyzer.param,
-             'error_msg': f'Error in analyzer {analyzer.pk}'}
-
-    if method == 'get_by_artist_url':
-        result = vk.get_by_artist_url(artist_card_url=analyzer.param)
-
+    if result_dict and 'result' in result_dict.keys():
+        result = result_dict['result']
     else:
-        result = None
+        result, error = None, 'scanner was stopped or removed'
 
-    if result:
-        save_analyzing_result(analyzer=analyzer, result=result)
+    analyzer = Analyzer.objects.filter(pk=analyzer.pk).first()
+    if analyzer:
+        if result:
+            save_analyzing_result(analyzer=analyzer, result=result)
+        else:
+            analyzer.status = 0
+            analyzer.error = vk.errors if vk.errors else error
+            analyzer.finish_date = timezone.now()
+            analyzer.save()
 
-    else:
-        analyzer.status = 0
-        analyzer.error = vk.errors if vk.errors else error
-        analyzer.finish_date = timezone.now()
-        analyzer.save()
+
+def _check_stop(process, analyzer):
+    process.join(timeout=0)
+    if not process.is_alive():
+        return True
+
+    db.connections.close_all()
+    scanner = Analyzer.objects.filter(pk=analyzer.pk).first()
+    if not scanner or scanner.status == 0 or scanner.status == 2 or scanner.status == 4:
+        process.terminate()
+        return True
+
+    return False
+
+
+def _wait_queue(analyzer):
+    earlier_parsers = Analyzer.objects.filter(owner=analyzer.owner, status__in=[1, 3]).exclude(pk=analyzer.pk)
+    if earlier_parsers:
+        earlier_running = [True for _ in earlier_parsers]
+        while any(earlier_running):
+            sleep(uniform(5, 15))
+            for n, earlier_parser in enumerate(earlier_parsers):
+                try:
+                    earlier_parser.refresh_from_db()
+                    if earlier_parser.status in [0, 2, 4]:
+                        earlier_running[n] = False
+                except Exception:
+                    earlier_running[n] = False
+    analyzer.status = 1
+    analyzer.save()

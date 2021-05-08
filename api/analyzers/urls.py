@@ -10,4 +10,5 @@ urlpatterns = [
     path('.add', AnalyzerAddView.as_view()),
     path('.get', AnalyzerGetView.as_view()),
     path('.getAll', AnalyzerGetAllView.as_view()),
+    path('.delete', AnalyzerDeleteView.as_view()),
 ]
