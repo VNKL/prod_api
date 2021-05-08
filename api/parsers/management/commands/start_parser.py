@@ -80,7 +80,9 @@ def _do_parser_process(function, params, result_dict):
 
 def _start_parsing(parser):
 
-    _wait_queue(parser)
+    parser = _wait_queue(parser)
+    if not parser:
+        return
 
     db.connections.close_all()
     vk = AudioSaversParser()
@@ -147,5 +149,11 @@ def _wait_queue(parser):
                         earlier_running[n] = False
                 except Exception:
                     earlier_running[n] = False
-    parser.status = 1
-    parser.save()
+
+    parser = Parser.objects.filter(pk=parser.pk).first()
+    if parser:
+        parser.status = 1
+        parser.save()
+        return parser
+    else:
+        return False

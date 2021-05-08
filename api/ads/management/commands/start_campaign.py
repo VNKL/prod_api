@@ -43,7 +43,9 @@ def start_campaign(campaign_id):
 
 def _start_campaign(campaign):
 
-    _wait_queue(campaign)
+    campaign = _wait_queue(campaign)
+    if not campaign:
+        return
 
     ads, errors, reference, campaign_id, fake_group_id = [], [], None, None, None,
 
@@ -89,8 +91,14 @@ def _wait_queue(campaign):
                         earlier_running[n] = False
                 except Campaign.DoesNotExist:
                     earlier_running[n] = False
-    campaign.status = 5
-    campaign.save()
+
+    campaign = Campaign.objects.filter(pk=campaign.pk).first()
+    if campaign:
+        campaign.status = 1
+        campaign.save()
+        return campaign
+    else:
+        return False
 
 
 def _get_vk(campaign, errors):

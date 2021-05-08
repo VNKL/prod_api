@@ -41,7 +41,10 @@ def _do_analyzing_process(analyzer, result_dict):
 
 
 def _start_analyzing(analyzer):
-    _wait_queue(analyzer)
+    analyzer = _wait_queue(analyzer)
+    if not analyzer:
+        return
+
     db.connections.close_all()
 
     vk = VkRelatedParser()
@@ -103,5 +106,11 @@ def _wait_queue(analyzer):
                         earlier_running[n] = False
                 except Exception:
                     earlier_running[n] = False
-    analyzer.status = 1
-    analyzer.save()
+
+    analyzer = Analyzer.objects.filter(pk=analyzer.pk).first()
+    if analyzer:
+        analyzer.status = 1
+        analyzer.save()
+        return analyzer
+    else:
+        return False

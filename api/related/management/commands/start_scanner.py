@@ -65,7 +65,10 @@ def _check_stop(process, scanner):
 
 
 def _start_scanning(scanner):
-    _wait_queue(scanner)
+    scanner = _wait_queue(scanner)
+    if not scanner:
+        return
+
     db.connections.close_all()
 
     vk = VkRelatedParser()
@@ -162,5 +165,11 @@ def _wait_queue(scanner):
                         earlier_running[n] = False
                 except Exception:
                     earlier_running[n] = False
-    scanner.status = 1
-    scanner.save()
+
+    scanner = Scanner.objects.filter(pk=scanner.pk).first()
+    if scanner:
+        scanner.status = 1
+        scanner.save()
+        return scanner
+    else:
+        return False

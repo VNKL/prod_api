@@ -66,7 +66,11 @@ def _do_grabbing_process(grabber, result_dict):
 
 
 def _start_grabbing(grabber):
-    _wait_queue(grabber)
+    grabber = _wait_queue(grabber)
+    if not grabber:
+        return
+
+
     db.connections.close_all()
 
     vk = WallParser()
@@ -211,5 +215,11 @@ def _wait_queue(grabber):
                         earlier_running[n] = False
                 except Exception:
                     earlier_running[n] = False
-    grabber.status = 1
-    grabber.save()
+
+    grabber = Grabber.objects.filter(pk=grabber.pk).first()
+    if grabber:
+        grabber.status = 1
+        grabber.save()
+        return grabber
+    else:
+        return False
