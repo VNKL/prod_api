@@ -7,6 +7,9 @@ from django import db
 
 from api.ads.models import Campaign, Automate
 from api.parsers.models import Parser
+from api.related.models import Scanner
+from api.analyzers.models import Analyzer
+from api.grabbers.models import Grabber
 
 from multiprocessing import Process
 
@@ -19,6 +22,7 @@ class Command(BaseCommand):
 
 
 def continue_tasks():
+
     campaigns = Campaign.objects.filter(status__in=[4, 5])
     for campaign in campaigns:
         db.connections.close_all()
@@ -37,5 +41,26 @@ def continue_tasks():
     for parser in parsers:
         db.connections.close_all()
         process = Process(target=call_command, args=('start_parser',), kwargs={'parser_id': parser.pk})
+        process.start()
+        sleep(uniform(7, 15))
+
+    scanners = Scanner.objects.filter(status__in=[1, 3])
+    for scanner in scanners:
+        db.connections.close_all()
+        process = Process(target=call_command, args=('start_scanner',), kwargs={'scanner_id': scanner.pk})
+        process.start()
+        sleep(uniform(7, 15))
+
+    analyzers = Analyzer.objects.filter(status__in=[1, 3])
+    for analyzer in analyzers:
+        db.connections.close_all()
+        process = Process(target=call_command, args=('start_analyzer',), kwargs={'analyzer_id': analyzer.pk})
+        process.start()
+        sleep(uniform(7, 15))
+
+    grabbers = Grabber.objects.filter(status__in=[1, 3])
+    for grabber in grabbers:
+        db.connections.close_all()
+        process = Process(target=call_command, args=('start_grabber',), kwargs={'grabber_id': grabber.pk})
         process.start()
         sleep(uniform(7, 15))
