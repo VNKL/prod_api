@@ -38,7 +38,6 @@ def _do_analyzing_process(analyzer, result_dict):
     db.connections.close_all()
     vk = ArtistCardParser()
     result = vk.get_by_artist_url(artist_card_url=analyzer.param)
-    print(result)
     result_dict['result'] = result
 
 
