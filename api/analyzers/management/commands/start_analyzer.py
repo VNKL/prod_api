@@ -35,6 +35,7 @@ def start_analyzer(analyzer_id):
 
 
 def _do_analyzing_process(analyzer, result_dict):
+    db.connections.close_all()
     vk = ArtistCardParser()
     result = vk.get_by_artist_url(artist_card_url=analyzer.param)
     print(result)
@@ -56,6 +57,7 @@ def _start_analyzing(analyzer):
         analyzer.photo_url = photo_url
     analyzer.save()
 
+    db.connections.close_all()
     ticket_manager = Manager()
     result_dict = ticket_manager.dict()
     process = Process(target=_do_analyzing_process, args=(analyzer, result_dict))
