@@ -39,6 +39,7 @@ def start_scanner(scanner_id):
 
 
 def _do_scanning_process(scanner, result_dict):
+    db.connections.close_all()
     vk = VkRelatedParser()
     result = vk.get_related_artists(artist_url=scanner.artist_url,
                                     listens_min=scanner.listens_min,
@@ -81,6 +82,7 @@ def _start_scanning(scanner):
         scanner.photo_url = photo_url
     scanner.save()
 
+    db.connections.close_all()
     ticket_manager = Manager()
     result_dict = ticket_manager.dict()
     process = Process(target=_do_scanning_process, args=(scanner, result_dict))

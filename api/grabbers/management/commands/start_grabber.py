@@ -55,6 +55,7 @@ def _check_stop(process, grabber):
 
 
 def _do_grabbing_process(grabber, result_dict):
+    db.connections.close_all()
     vk = WallParser()
     result = vk.get_group_posts(group=grabber.group,
                                 date_from=grabber.date_from,
@@ -70,7 +71,6 @@ def _start_grabbing(grabber):
     if not grabber:
         return
 
-
     db.connections.close_all()
 
     vk = WallParser()
@@ -82,6 +82,7 @@ def _start_grabbing(grabber):
         grabber.group_ava = group_ava
         grabber.save()
 
+    db.connections.close_all()
     ticket_manager = Manager()
     result_dict = ticket_manager.dict()
     process = Process(target=_do_grabbing_process, args=(grabber, result_dict))
