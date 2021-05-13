@@ -94,7 +94,7 @@ def _wait_queue(campaign):
 
     campaign = Campaign.objects.filter(pk=campaign.pk).first()
     if campaign:
-        campaign.status = 1
+        campaign.status = 5
         campaign.save()
         return campaign
     else:
