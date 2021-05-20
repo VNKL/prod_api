@@ -28,5 +28,6 @@ urlpatterns = [
     path('api/grabbers', include('api.grabbers.urls')),
     path('api/ads', include('api.ads.urls')),
     path('api/related', include('api.related.urls')),
+    path('api/users_audios', include('api.users_audios.urls'))
 
 ]

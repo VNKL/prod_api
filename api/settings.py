@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'api.grabbers',
     'api.ads',
     'api.related',
+    'api.users_audios',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
