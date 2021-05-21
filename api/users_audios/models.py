@@ -10,6 +10,7 @@ class Parser(models.Model):
     owner = models.ForeignKey(User, related_name='users_audios_parsers', on_delete=models.CASCADE)
     status = models.IntegerField(blank=False, null=False, choices=STATUS_CHOICES)
     error = models.TextField(blank=True, null=True)
+    name = models.TextField(null=True)
     n_last = models.BigIntegerField(default=30)
     type = models.TextField(choices=TYPE_CHOICES)
     user_ids = models.TextField(null=True)

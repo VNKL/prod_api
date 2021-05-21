@@ -5,7 +5,7 @@ from api.users_audios.models import Parser, Item
 
 @admin.register(Parser)
 class ParserAdmin(admin.ModelAdmin):
-    list_display = 'id', 'owner', 'status', 'error', 'n_last', 'type', 'start_date', 'finish_date'
+    list_display = 'id', 'owner', 'name', 'status', 'error', 'n_last', 'type', 'start_date', 'finish_date'
 
 
 @admin.register(Item)

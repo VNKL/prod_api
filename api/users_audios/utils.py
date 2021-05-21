@@ -7,7 +7,8 @@ def create_parser(user, data):
     parser = Parser(owner=user,
                     status=3,
                     start_date=timezone.now(),
-                    n_last=data['n_last'],
+                    name=data['name'],
+                    n_last=data['n_last'] if data['n_last'] < 100 else 100,
                     type=data['type'],
                     user_ids=data['user_ids'])
     parser.save()
@@ -24,7 +25,7 @@ def delete_parser(user, data):
 
 
 def users_audios_results_to_csv_filename(parser):
-    return f"users_audios_parser_from_{parser['start_date']}.csv"
+    return f"{parser['name']} ({parser['start_date']}).csv"
 
 
 def users_audios_results_to_filebody(parser):

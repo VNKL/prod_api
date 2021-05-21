@@ -6,7 +6,7 @@ from .models import Parser, Item
 class ParserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parser
-        fields = 'id', 'status', 'error', 'n_last', 'type', 'start_date', 'finish_date'
+        fields = 'id', 'name', 'status', 'error', 'n_last', 'type', 'start_date', 'finish_date'
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -24,10 +24,11 @@ class ParserExtendedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Parser
-        fields = 'id', 'status', 'error', 'n_last', 'type', 'start_date', 'finish_date', 'items'
+        fields = 'id', 'name', 'status', 'error', 'n_last', 'type', 'start_date', 'finish_date', 'items'
 
 
 class CreateParserSerializer(serializers.Serializer):
+    name = serializers.CharField()
     type = serializers.CharField(default='tracks')
     n_last = serializers.IntegerField(default=30)
     user_ids = serializers.CharField()
