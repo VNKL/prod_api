@@ -266,6 +266,8 @@ def data_for_create_ads(ad_name, campaign_id, post_url, sex=None, music=False, b
         data_dict.update({'retargeting_groups': retarget_id})
     if boom:
         data_dict.update({'apps': 4705861})
+    if 'Пустой сегмент' in ad_name:
+        data_dict.update({'status': 0})
 
     return json.dumps([data_dict])
 
