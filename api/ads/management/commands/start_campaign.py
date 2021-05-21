@@ -346,7 +346,8 @@ def _get_retarget_names(vk, campaign):
 
 
 def _save_ad(campaign, ad_id, ad_name, post_replica, audience_count):
-    ad = Ad(campaign=campaign, ad_id=ad_id, ad_name=ad_name,
+    status = 0 if 'Пустой сегмент' in ad_name else 1
+    ad = Ad(campaign=campaign, ad_id=ad_id, ad_name=ad_name, status=status,
             post_owner=post_replica['owner_id'], post_id=post_replica['post_id'],
             audience_count=audience_count if audience_count else 0)
     ad.save()
