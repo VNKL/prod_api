@@ -20,6 +20,7 @@ class Command(BaseCommand):
 
 
 def start_updater():
+    db.connections.close_all()
 
     last_chart = Chart.objects.filter(service='vk').order_by('-date').first()
     last_date = last_chart.date

@@ -65,5 +65,6 @@ def continue_tasks():
         process.start()
         sleep(uniform(7, 15))
 
+    db.connections.close_all()
     process = Process(target=call_command, args=('start_charts_updater',))
     process.start()
