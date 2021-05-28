@@ -41,6 +41,12 @@ def stop_automate(user, data):
     automate.status = 0
     automate.finish_date = timezone.now()
     automate.save()
+
+    campaign = Campaign.objects.filter(pk=automate.campaign.pk).first()
+    if campaign:
+        campaign.is_automate = False
+        campaign.save()
+
     return {'response': f"stopping automate with id {data['id']}"}
 
 
