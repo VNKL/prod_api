@@ -64,9 +64,11 @@ def _start_automate(automate):
 
         if datetime.now() > next_update_time:
             campaign.refresh_from_db()
-            campaign = update_campaign_stats(campaign)
+            campaign, money_limit = update_campaign_stats(campaign)
             _update_ads(campaign, automate, vk)
             next_update_time = datetime.now() + timedelta(minutes=15)
+            if campaign.spent == money_limit or campaign.status == 2:
+                break
 
         sleep(60)
 

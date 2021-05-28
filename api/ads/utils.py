@@ -77,7 +77,7 @@ def update_campaign_stats(campaign):
         return campaign
 
     vk = VkAds(token)
-    camp_status = vk.get_campaign_status(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
+    camp_status, money_limit = vk.get_campaign_status(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
     campaign.status = int(camp_status) if camp_status else campaign.status
     ads_stat = vk.get_ads_stat(campaign.cabinet_id, campaign.campaign_id, campaign.client_id)
 
@@ -103,7 +103,7 @@ def update_campaign_stats(campaign):
 
     _process_campaign_stat(camp_listens, camp_reach, camp_saves, camp_spent, camp_clicks, camp_joins, campaign)
 
-    return campaign
+    return campaign, money_limit
 
 
 def camp_stat_to_str(stat):
