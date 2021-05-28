@@ -68,3 +68,7 @@ def continue_tasks():
     db.connections.close_all()
     process = Process(target=call_command, args=('start_charts_updater',))
     process.start()
+
+    db.connections.close_all()
+    process = Process(target=call_command, args=('del_old_parsers',))
+    process.start()
