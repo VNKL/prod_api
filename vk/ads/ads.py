@@ -437,7 +437,7 @@ class VkAds(VkEngine):
                   'campaign_ids': json.dumps([campaign_id]), 'include_deleted': 1}
         resp = self._ads_response('ads.getCampaigns', params)
         if isinstance(resp, list) and isinstance(resp[0], dict) and 'status' in resp[0].keys():
-            return resp[0]['status'], resp[0]['all_limit']
+            return resp[0]['status'], int(resp[0]['all_limit'])
         return None, None
 
     def _get_ads_stat(self, cabinet_id, ads):
