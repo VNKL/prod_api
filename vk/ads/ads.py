@@ -443,7 +443,7 @@ class VkAds(VkEngine):
     def _get_ads_stat(self, cabinet_id, ads):
         if not ads:
             return None
-        ad_str = ','.join([x['ad_id'] if 'ad_id' in x.keys() else x['id'] for x in ads])
+        ad_str = ','.join([str(x['ad_id']) if 'ad_id' in x.keys() else str(x['id']) for x in ads])
         params = {'account_id': cabinet_id, 'ids': ad_str, 'ids_type': 'ad', 'period': 'overall',
                   'date_from': 0, 'date_to': 0}
         resp = self._ads_response('ads.getStatistics', params)
