@@ -25,7 +25,7 @@ class VkAds(VkEngine):
         self.ads_n_try = 0
         self.playlist_cover = None
 
-    def _get_ads_response(self, url, data, captcha_sid=None, captcha_key=None):
+    def _get_ads_response(self, url, data, captcha_sid=None, captcha_key=None, reset_n_try=True):
         """
         Возвращает ответ апи ВК, отбиваясь от капчи и ту мэни реквестс пер секонд
 
@@ -36,6 +36,9 @@ class VkAds(VkEngine):
         :return:                dict, разобранный из JSON ответ апи ВК (None - если ошибка в ответе)
         """
         sleep(uniform(0.4, 0.6))
+
+        if reset_n_try:
+            self.ads_n_try = 0
 
         proxy_dict = {'https': f'http://{self.proxy}'} if self.proxy else None
 
@@ -84,7 +87,7 @@ class VkAds(VkEngine):
             self.proxy = load_proxy()
             sleep(uniform(3, 10))
             self.ads_n_try += 1
-            return self._get_ads_response(url, data, captcha_sid, captcha_key)
+            return self._get_ads_response(url, data, captcha_sid, captcha_key, reset_n_try=False)
         else:
             self.errors.append({'error_msg': 'VK API request max retries error'})
 
@@ -95,22 +98,32 @@ class VkAds(VkEngine):
             captcha_img = resp['error']['captcha_img']
             captcha_key = anticaptcha(captcha_img, RUCAPTCHA_KEY)
             if captcha_key:
-                return self._get_api_response(url, data, captcha_sid, captcha_key)
+                return self._get_ads_response(url, data, captcha_sid, captcha_key, reset_n_try=False)
             else:
                 self.errors.append(resp['error'])
                 return None
 
         elif resp['error']['error_code'] in API_SLEEPING_ERRORS:
-            sleep(uniform(20, 40))
-            return self._get_api_response(url, data, captcha_sid, captcha_key)
+            if self.ads_n_try < 10:
+                self.ads_n_try += 1
+                sleep(uniform(20, 40))
+                return self._get_ads_response(url, data, captcha_sid, captcha_key, reset_n_try=False)
+            else:
+                self.errors.append(resp['error'])
+                return None
 
         elif resp['error']['error_code'] in TOKEN_FATAL_ERRORS:
             self.errors.append(resp['error'])
             return None
 
         elif resp['error']['error_code'] in TOKEN_SLEEPING_ERRORS:
-            sleep(uniform(5, 15))
-            return self._get_api_response(url, data, captcha_sid, captcha_key)
+            if self.ads_n_try < 10:
+                self.ads_n_try += 1
+                sleep(uniform(5, 15))
+                return self._get_ads_response(url, data, captcha_sid, captcha_key, reset_n_try=False)
+            else:
+                self.errors.append(resp['error'])
+                return None
 
         elif resp['error']['error_code'] == 602:
             return resp['response'] if 'response' in resp.keys() else resp
