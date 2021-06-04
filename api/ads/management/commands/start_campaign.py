@@ -162,23 +162,27 @@ def _create_ads_for_musicians(reference_orig, vk, campaign):
     ads = []
     musicians = _get_musicians(campaign)
     for musician in musicians:
-        formula = vk.get_music_artist_formula(musician)
-        if formula:
-            reference = copy.deepcopy(reference_orig)
-            post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
-            if post_replica and 'post_url' in post_replica.keys():
-                ad_name = f'{musician} / слушатели'
-                ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
-                                     ad_name=ad_name, post_url=post_replica['post_url'],
-                                     sex=campaign.sex, music=campaign.music, boom=campaign.boom,
-                                     age_from=campaign.age_from, age_to=campaign.age_to,
-                                     age_disclaimer=campaign.age_disclaimer, musician_formula=formula)
-                if ad_id:
-                    sleep(uniform(1, 4))
-                    audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
-                                                         ad_id=ad_id, post_url=post_replica['post_url'])
-                    ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
-                    ads.append(ad)
+        try:
+            formula = vk.get_music_artist_formula(musician)
+            if formula:
+                reference = copy.deepcopy(reference_orig)
+                post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
+                if post_replica and 'post_url' in post_replica.keys():
+                    ad_name = f'{musician} / слушатели'
+                    ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
+                                         ad_name=ad_name, post_url=post_replica['post_url'],
+                                         sex=campaign.sex, music=campaign.music, boom=campaign.boom,
+                                         age_from=campaign.age_from, age_to=campaign.age_to,
+                                         age_disclaimer=campaign.age_disclaimer, musician_formula=formula)
+                    if ad_id:
+                        sleep(uniform(1, 4))
+                        audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
+                                                             ad_id=ad_id, post_url=post_replica['post_url'])
+                        ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
+                        ads.append(ad)
+        except Exception:
+            continue
+
     return ads
 
 
@@ -186,23 +190,27 @@ def _create_ads_for_groups(reference_orig, vk, campaign):
     ads = []
     groups = _get_groups(campaign)
     for group in groups:
-        name, formula = vk.get_groups_names_and_formula(group)
-        if name and formula:
-            reference = copy.deepcopy(reference_orig)
-            post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
-            if post_replica and 'post_url' in post_replica.keys():
-                ad_name = f'{name} / актив'
-                ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
-                                     ad_name=ad_name, post_url=post_replica['post_url'],
-                                     sex=campaign.sex, music=campaign.music, boom=campaign.boom,
-                                     age_from=campaign.age_from, age_to=campaign.age_to,
-                                     age_disclaimer=campaign.age_disclaimer, groups_formula=formula)
-                if ad_id:
-                    sleep(uniform(1, 4))
-                    audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
-                                                         ad_id=ad_id, post_url=post_replica['post_url'])
-                    ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
-                    ads.append(ad)
+        try:
+            name, formula = vk.get_groups_names_and_formula(group)
+            if name and formula:
+                reference = copy.deepcopy(reference_orig)
+                post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
+                if post_replica and 'post_url' in post_replica.keys():
+                    ad_name = f'{name} / актив'
+                    ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
+                                         ad_name=ad_name, post_url=post_replica['post_url'],
+                                         sex=campaign.sex, music=campaign.music, boom=campaign.boom,
+                                         age_from=campaign.age_from, age_to=campaign.age_to,
+                                         age_disclaimer=campaign.age_disclaimer, groups_formula=formula)
+                    if ad_id:
+                        sleep(uniform(1, 4))
+                        audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
+                                                             ad_id=ad_id, post_url=post_replica['post_url'])
+                        ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
+                        ads.append(ad)
+        except Exception:
+            continue
+
     return ads
 
 
@@ -213,23 +221,27 @@ def _create_ads_for_retarget(reference_orig, vk, campaign):
         return ads
 
     for retarget_name in retarget_names:
-        retargets = [x for x in cab_retarget if x['name'] == retarget_name]
-        for retarget in retargets:
-            reference = copy.deepcopy(reference_orig)
-            post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
-            if post_replica and 'post_url' in post_replica.keys():
-                ad_name = f'{retarget_name} / ретаргетинг'
-                ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
-                                     ad_name=ad_name, post_url=post_replica['post_url'],
-                                     sex=campaign.sex, music=campaign.music, boom=campaign.boom,
-                                     age_from=campaign.age_from, age_to=campaign.age_to,
-                                     age_disclaimer=campaign.age_disclaimer, retarget_id=retarget['id'])
-                if ad_id:
-                    sleep(uniform(1, 4))
-                    audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
-                                                         ad_id=ad_id, post_url=post_replica['post_url'])
-                    ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
-                    ads.append(ad)
+        try:
+            retargets = [x for x in cab_retarget if x['name'] == retarget_name]
+            for retarget in retargets:
+                reference = copy.deepcopy(reference_orig)
+                post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
+                if post_replica and 'post_url' in post_replica.keys():
+                    ad_name = f'{retarget_name} / ретаргетинг'
+                    ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
+                                         ad_name=ad_name, post_url=post_replica['post_url'],
+                                         sex=campaign.sex, music=campaign.music, boom=campaign.boom,
+                                         age_from=campaign.age_from, age_to=campaign.age_to,
+                                         age_disclaimer=campaign.age_disclaimer, retarget_id=retarget['id'])
+                    if ad_id:
+                        sleep(uniform(1, 4))
+                        audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
+                                                             ad_id=ad_id, post_url=post_replica['post_url'])
+                        ad = _save_ad(campaign, ad_id, ad_name, post_replica, audience_count)
+                        ads.append(ad)
+        except Exception:
+            continue
+
     return ads
 
 
@@ -237,20 +249,24 @@ def _create_empty_ads(reference_orig, vk, campaign):
     ads = []
     names = [f'Пустой сегмент {i + 1}' for i in range(campaign.empty_ads)]
     for name in names:
-        reference = copy.deepcopy(reference_orig)
-        post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
-        if post_replica and 'post_url' in post_replica.keys():
-            ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
-                                 ad_name=name, post_url=post_replica['post_url'],
-                                 sex=campaign.sex, music=campaign.music, boom=campaign.boom,
-                                 age_from=campaign.age_from, age_to=campaign.age_to,
-                                 age_disclaimer=campaign.age_disclaimer)
-            if ad_id:
-                sleep(uniform(1, 4))
-                audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
-                                                     ad_id=ad_id, post_url=post_replica['post_url'])
-                ad = _save_ad(campaign, ad_id, name, post_replica, audience_count)
-                ads.append(ad)
+        try:
+            reference = copy.deepcopy(reference_orig)
+            post_replica = vk.create_post_replica(reference, campaign.group_id, campaign.fake_group_id)
+            if post_replica and 'post_url' in post_replica.keys():
+                ad_id = vk.create_ad(cabinet_id=campaign.cabinet_id, campaign_id=campaign.campaign_id,
+                                     ad_name=name, post_url=post_replica['post_url'],
+                                     sex=campaign.sex, music=campaign.music, boom=campaign.boom,
+                                     age_from=campaign.age_from, age_to=campaign.age_to,
+                                     age_disclaimer=campaign.age_disclaimer)
+                if ad_id:
+                    sleep(uniform(1, 4))
+                    audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
+                                                         ad_id=ad_id, post_url=post_replica['post_url'])
+                    ad = _save_ad(campaign, ad_id, name, post_replica, audience_count)
+                    ads.append(ad)
+        except Exception:
+            continue
+
     return ads
 
 
