@@ -70,8 +70,21 @@ class VkEngine:
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
 
+        if 'execute_errors' in resp.keys():
+            return self._handle_execute_errors(url, data, captcha_sid, captcha_key)
+
         if 'error' in resp.keys():
             return self._handle_api_error(captcha_key, captcha_sid, data, resp, url)
+        else:
+            return resp['response']
+
+    def _handle_execute_errors(self, url, data, captcha_sid, captcha_key, resp):
+        error_code = resp['execute_errors'][0]['error_code']
+        if error_code == 29:
+            mark_account_rate_limited(self.account)
+            self.account = load_account()
+            data['access_token'] = self.account.token
+            return self._get_api_response(url, data, captcha_sid, captcha_key)
         else:
             return resp['response']
 
