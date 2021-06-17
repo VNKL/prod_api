@@ -65,6 +65,8 @@ class VkEngine:
 
         try:
             resp = requests.post(url, data, proxies=proxy_dict).json()
+            print(1111111, url)
+            print(2222222, resp)
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
 
@@ -133,9 +135,7 @@ class VkEngine:
         return self._get_api_response(url=url, data=params)
 
     def _execute_response(self, code):
-        print(1111111, code)
         resp = self._api_response('execute', {'code': code})
-        print(2222222, resp)
 
         if isinstance(resp, int):
             return resp
