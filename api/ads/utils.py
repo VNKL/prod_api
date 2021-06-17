@@ -92,7 +92,6 @@ def update_campaign_stats(campaign):
 
     playlists_stat = vk.get_playlists_stat(campaign.fake_group_id)
     audios_stat = vk.get_audios_stat(_get_campaign_audios(ads))
-    print(2222222, audios_stat)
     all_audio_stat = {'audios': audios_stat, 'playlists': playlists_stat}
 
     updated_ads, updated_playlists, updated_audios = [], [], []
@@ -292,5 +291,4 @@ def _get_campaign_audios(ads):
         if audios:
             refact_audios = [{'owner_id': x.owner_id, 'id': x.audio_id} for x in audios if x.owner_id and x.audio_id]
             all_audios.extend(refact_audios)
-    print(11111, all_audios)
     return all_audios

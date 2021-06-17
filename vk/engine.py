@@ -134,6 +134,7 @@ class VkEngine:
 
     def _execute_response(self, code):
         resp = self._api_response('execute', {'code': code})
+        print(1111111, resp)
 
         if isinstance(resp, int):
             return resp
