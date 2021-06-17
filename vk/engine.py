@@ -133,8 +133,9 @@ class VkEngine:
         return self._get_api_response(url=url, data=params)
 
     def _execute_response(self, code):
+        print(1111111, code)
         resp = self._api_response('execute', {'code': code})
-        print(1111111, resp)
+        print(2222222, resp)
 
         if isinstance(resp, int):
             return resp
