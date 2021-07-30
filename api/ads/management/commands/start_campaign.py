@@ -61,6 +61,8 @@ def _start_campaign(campaign):
         fake_group_id = _create_fake_group(vk, campaign, errors)
 
     if fake_group_id:
+        campaign.fake_group_id = fake_group_id
+        campaign.save()
         ads.extend(_create_ads_for_groups(reference, vk, campaign))
         ads.extend(_create_ads_for_retarget(reference, vk, campaign))
         ads.extend(_create_ads_for_musicians(reference, vk, campaign))
