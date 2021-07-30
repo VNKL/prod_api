@@ -1,9 +1,12 @@
 import requests
+import vk_api
 
 from django.utils import timezone
 from time import sleep
+from random import uniform
 
 from .models import Account, Proxy
+from vk.audio_savers_new.utils import captcha_handler
 
 
 def load_account(n_try=0):
@@ -29,6 +32,8 @@ def load_account(n_try=0):
                 for acc in accounts:
                     if acc.rate_limit_date + delta > timezone.now():
                         release_account(acc)
+                        acc.is_busy = True
+                        acc.save()
                         return acc
             except Exception:
                 sleep(1)
@@ -36,6 +41,43 @@ def load_account(n_try=0):
 
             sleep(300)
             return load_account(n_try=n_try + 1)
+
+
+def _get_remixsid_from_vk(login, password, n_try=0):
+    if n_try < 10:
+        vk_session = vk_api.VkApi(login=login, password=password, captcha_handler=captcha_handler)
+        try:
+            vk_session.auth()
+            cookies = vk_session.http.cookies.get_dict()
+            print('111111111111 SUCCESS', cookies['remixsid'])
+            return cookies['remixsid']
+        except vk_api.AuthError as error_msg:
+            print(login, password, error_msg)
+            sleep(uniform(3, 5))
+            return _get_remixsid_from_vk(login, password, n_try=n_try+1)
+
+
+def load_remixsid(n_try=0):
+    if n_try < 5:
+        account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
+        if account:
+            remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
+            account.is_busy = True
+            account.save()
+            return remixsid, account
+
+        else:
+            accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
+            delta = timezone.timedelta(hours=24)
+            for acc in accounts:
+                if acc.rate_limit_date + delta > timezone.now():
+                    release_account(acc)
+                    remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
+                    acc.is_busy = True
+                    acc.save()
+                    return remixsid, acc
+
+    return None, None
 
 
 def load_proxy():

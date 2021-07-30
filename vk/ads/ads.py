@@ -8,6 +8,7 @@ from random import uniform
 from api.settings import RUCAPTCHA_KEY
 from vk.engine import VkEngine, anticaptcha
 from vk.ads import utils
+from vk.audio_savers_new.parser import AudioSaversNew
 from api.accounts.utils import release_proxy, load_proxy
 
 
@@ -171,21 +172,35 @@ class VkAds(VkEngine):
         if ads:
             return utils.get_ads_stat_summary(ads, stat)
 
-    def get_audios_stat(self, audios):
+    @staticmethod
+    def get_audios_stat(audios):
         if not audios:
             return audios
 
         audios_with_savers = []
-        for x in range(0, len(audios), 25):
-            y = x + 25 if x + 25 <= len(audios) else None
-            audios_batch = audios[x:y]
-            code = utils.code_for_get_audios_stat(audios_batch)
-            resp = self._execute_response(code)
-            if resp:
-                for n, audio in enumerate(audios_batch):
-                    audios_with_savers.append({**audio, 'savers_count': resp[n]})
-            else:
-                audios_with_savers.extend(audios_batch)
+
+        # for x in range(0, len(audios), 25):
+        #     y = x + 25 if x + 25 <= len(audios) else None
+        #     audios_batch = audios[x:y]
+        #     code = utils.code_for_get_audios_stat(audios_batch)
+        #     resp = self._execute_response(code)
+        #     if resp:
+        #         for n, audio in enumerate(audios_batch):
+        #             audios_with_savers.append({**audio, 'savers_count': resp[n]})
+        #     else:
+        #         audios_with_savers.extend(audios_batch)
+
+        audio_ids = [f"{x['owner_id']}_{x['id']}" for x in audios]
+        vk = AudioSaversNew()
+        savers_count = vk.get_savers_count(audio_ids)
+
+        if savers_count:
+            for audio in audios:
+                audio_id = f"{audio['owner_id']}_{audio['id']}"
+                audio_savers = savers_count[audio_id] if audio_id in savers_count.keys() else 0
+                audios_with_savers.append({**audio, 'savers_count': audio_savers})
+        else:
+            audios_with_savers = audios
 
         audios_with_savers = utils.simplify_vk_objs(audios_with_savers, obj_type='audio')
 
