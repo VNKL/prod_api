@@ -49,7 +49,6 @@ def _get_remixsid_from_vk(login, password, n_try=0):
         try:
             vk_session.auth()
             cookies = vk_session.http.cookies.get_dict()
-            print('111111111111 SUCCESS', cookies['remixsid'])
             return cookies['remixsid']
         except vk_api.AuthError as error_msg:
             print(login, password, error_msg)

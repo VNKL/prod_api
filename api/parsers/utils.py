@@ -83,6 +83,7 @@ def _dump_savers_results(parser, result):
         core_path = f'parsing_results/{title} ({datetime_now})'
         os.makedirs(core_path, exist_ok=True)
 
+        _write_saves_by_tracks(result, core_path)
         _write_saves_from(saves_from, core_path)
         _write_saves_exact(saves_exact, core_path)
         _write_top_audios(audios_as_list, core_path, total_count, unique_count, title)
@@ -140,6 +141,27 @@ def _get_parser_title(parser):
             title = '[pre-parsed audio savers]'
 
     return title
+
+
+def _write_saves_by_tracks(audios, core_path):
+    folder_path = f'{core_path}/tracks'
+    os.makedirs(folder_path, exist_ok=True)
+    for audio in audios:
+        if 'savers' in audio.keys() and audio['savers']:
+            title = audio['title']
+            if 'subtitle' in audio.keys() and audio['subtitle'] and 'feat.' not in audio['subtitle']:
+                title += f" ({audio['subtitle']})"
+            title = title.replace('?', '')
+            title = title.replace('/', '')
+            title = title.replace('"', "'")
+            artist = audio['artist']
+            artist = artist.replace('?', '')
+            artist = artist.replace('/', '')
+            artist = artist.replace('"', "'")
+            audio_folder_path = f"{folder_path}/{artist} - {title}"
+            os.makedirs(audio_folder_path, exist_ok=True)
+            file_title = f"{audio_folder_path}/{artist} - {title} ({len(audio['savers'])})"
+            _write_sliced_txt(file_title, audio['savers'])
 
 
 def _write_saves_from(saves_from, core_path):

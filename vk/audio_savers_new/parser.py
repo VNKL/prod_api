@@ -5,16 +5,16 @@ from time import sleep
 from random import uniform
 
 from api.accounts.utils import load_remixsid, release_account
-from .utils import get_offset_batches
+from .utils import get_offset_batches, calculate_n_threads
 
 
-def get_savers_list_multiprocess(audio_id, max_offset):
-    offset_batches = get_offset_batches(max_offset=max_offset, n_batches=8)
+def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
+    offset_batches = get_offset_batches(max_offset=max_offset, n_batches=n_threads)
     result_list = Manager().list()
     processes = []
-    for offset_batch in offset_batches:
+    for n, offset_batch in enumerate(offset_batches):
         process = Process(target=get_savers_list_one_process,
-                          args=(audio_id, offset_batch['min'], offset_batch['max'], result_list))
+                          args=(audio_id, offset_batch['min'], offset_batch['max'], result_list, n + 1))
         process.start()
         processes.append(process)
         sleep(uniform(3, 5))
@@ -29,9 +29,12 @@ def get_savers_list_multiprocess(audio_id, max_offset):
     return result
 
 
-def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list):
+def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, n_process):
     vk = AudioSaversNew()
-    savers_list = vk.pars_savers_one_thread(audio_id=audio_id, offset_from=offset_min, offset_to=offset_max)
+    savers_list = vk.pars_savers_one_thread(audio_id=audio_id,
+                                            offset_from=offset_min,
+                                            offset_to=offset_max,
+                                            n_thread=n_process)
     result_list.append(savers_list)
 
 
@@ -92,7 +95,6 @@ class AudioSaversNew:
         return int(max_offset) + len(users_hrefs)
 
     def get_savers_count(self, audio_ids):
-
         if not self.remixsid:
             return None
 
@@ -114,18 +116,21 @@ class AudioSaversNew:
         page = self._get_savers_page(audio_id=audio_id)
         users, max_offset = self._get_users_from_page(page=page, audio_id=audio_id)
 
+        n_threads = calculate_n_threads(max_offset=max_offset)
+
         if max_offset:
-            users.extend(get_savers_list_multiprocess(audio_id=audio_id, max_offset=max_offset))
+            users.extend(get_savers_list_multiprocess(audio_id=audio_id, max_offset=max_offset, n_threads=n_threads))
 
         return users
 
-    def pars_savers_one_thread(self, audio_id, offset_from, offset_to):
+    def pars_savers_one_thread(self, audio_id, offset_from, offset_to, n_thread=1):
         users = []
         for offset in range(offset_from, offset_to + 50, 50):
             page = self._get_savers_page(audio_id=audio_id, offset=offset)
             try:
                 next_users, _ = self._get_users_from_page(page=page, audio_id=audio_id)
                 users.extend(next_users)
+                print(f'Process: {n_thread}   |   Offset: {offset} / {offset_to}')
             except Exception:
                 print(page)
 

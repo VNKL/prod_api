@@ -1,50 +1,43 @@
 """ Use Python 3.7 """
 
-from time import sleep
 from datetime import date, timedelta
-from multiprocessing import Process, Manager
 
 from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS
 from vk.audio_savers import utils
 from vk.wall_grabbing.parser import WallParser
 from vk.engine import VkEngine
 from vk.audio_savers_new.parser import AudioSaversNew
+from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, code_for_get_users, \
+    unpack_execute_get_users
 
 
-def get_audio_savers_multiprocess(audios, n_threads):
+def get_audio_savers_multiprocess(audios):
+    vk = AudioSaversNew()
+    audios_with_savers_list = []
+    all_savers_list = []
+    for n, audio in enumerate(audios):
+        print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Start parsing audio savers")
+        audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
+        savers_list = vk.get_savers_list(audio_id=audio_id)
+        audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=savers_list)
+        audios_with_savers_list.append(audio_with_savers)
+        all_savers_list.extend(savers_list)
+        print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Finished parsing audio savers")
 
-    audios_batches = _batch_audios_list(audios, n_threads)
-    parser_manager = Manager()
-    result_list = parser_manager.list()
-    processes = [Process(target=_pars_audios_batch, args=(x, result_list)) for x in audios_batches]
-    for p in processes:
-        p.start()
-        sleep(1)
-    for p in processes:
-        p.join()
-
-    result_list = list(result_list)
-    return result_list
-
-
-def _batch_audios_list(audios, n_threads):
-    batches_list = [[] for _ in range(n_threads)]
-    n = 0
-    for audio in audios:
-        if n + 1 <= n_threads:
-            batches_list[n].append(audio)
-            n += 1
-        else:
-            batches_list[0].append(audio)
-            n = 1
-    return batches_list
-
-
-def _pars_audios_batch(audios, result_list):
+    print('Start converting user domains to user ids')
     vk = AudioSaversParser()
-    savers = vk.iter_get_audios_savers(audios=audios)
-    if savers:
-        result_list.extend(savers)
+    user_domains_to_ids_dict = vk.get_user_ids_from_domains(domains=all_savers_list)
+    print('Finished converting user domains to user ids')
+    if user_domains_to_ids_dict:
+        for audio in audios_with_savers_list:
+            savers_ids = []
+            for domain in audio['savers']:
+                if domain in user_domains_to_ids_dict.keys():
+                    savers_ids.append(user_domains_to_ids_dict[domain])
+            if savers_ids:
+                audio['savers'] = savers_ids
+
+    return audios_with_savers_list
 
 
 class AudioSaversParser(VkEngine):
@@ -280,7 +273,7 @@ class AudioSaversParser(VkEngine):
             if count_only:
                 return audios
             if n_threads:
-                return get_audio_savers_multiprocess(audios, n_threads)
+                return get_audio_savers_multiprocess(audios)
             else:
                 return self.iter_get_audios_savers(audios)
         else:
@@ -307,6 +300,18 @@ class AudioSaversParser(VkEngine):
             except OSError:
                 pass
         return audios_with_savers
+
+    def get_user_ids_from_domains(self, domains):
+        users_ids_dict = {}
+        domains_execute_batches = convert_users_domains_to_execute_batches(domains=domains)
+        for batch in domains_execute_batches:
+            code = code_for_get_users(batch=batch)
+            execute_resp = self._execute_response(code)
+            if execute_resp:
+                batch_dict = unpack_execute_get_users(resp=execute_resp)
+                users_ids_dict.update(batch_dict)
+
+        return users_ids_dict
 
     def _get_block_audios(self, block_id):
         audios = []
