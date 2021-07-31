@@ -72,6 +72,24 @@ def iter_zip_audio_obj_and_savers(audios, execute_response):
     return audios_with_savers_count
 
 
+def iter_zip_audio_obj_and_savers_new(audios, savers_counters):
+    """
+    Возвращает лист упрощенных объектов аудиозаписей с количеством их добавлений и,
+    если переданы айди людей, которые добавили аудио, с листом айди добавивших людей
+
+    :param audios:              list, лист объектов аудиозаписей ВК
+    :param savers_counters:     dict, дикт {full_audio_id: savers_count}
+    :return:                    list, лист упрощенных и обновленных объектов аудиозаписей ВК
+    """
+    audios_with_savers_count = []
+    for audio in audios:
+        audio_id = f"{audio['owner_id']}_{audio['id']}"
+        savers_count = savers_counters[audio_id] if audio_id in savers_counters.keys() else None
+        zipped = zip_audio_obj_and_savers(audio, savers_count)
+        audios_with_savers_count.append(zipped)
+    return audios_with_savers_count
+
+
 def zip_audio_obj_and_savers(audio, savers):
 
     audio_obj = {

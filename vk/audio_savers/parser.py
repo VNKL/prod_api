@@ -8,6 +8,7 @@ from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS
 from vk.audio_savers import utils
 from vk.wall_grabbing.parser import WallParser
 from vk.engine import VkEngine
+from vk.audio_savers_new.parser import AudioSaversNew
 
 
 def get_audio_savers_multiprocess(audios, n_threads):
@@ -371,17 +372,10 @@ class AudioSaversParser(VkEngine):
         return audios
 
     def _get_savers_count(self, audios):
-        audio_batches = []
-        for x in range(0, len(audios), 25):
-            y = x + 25 if x + 25 <= len(audios) else None
-            audio_batches.append(audios[x:y])
-
-        audios_with_savers_count = []
-        for batch in audio_batches:
-            code = utils.code_for_get_savers_count(batch)
-            execute_resp = self._execute_response(code)
-            if execute_resp:
-                audios_with_savers_count.extend(utils.iter_zip_audio_obj_and_savers(batch, execute_resp))
+        vk = AudioSaversNew()
+        audio_ids = [f"{x['owner_id']}_{x['id']}" for x in audios]
+        saves_counters = vk.get_savers_count(audio_ids=audio_ids)
+        audios_with_savers_count = utils.iter_zip_audio_obj_and_savers_new(audios, saves_counters)
 
         return audios_with_savers_count
 
