@@ -76,9 +76,7 @@ def _dump_savers_results(parser, result):
         saves_from, saves_exact, audios_as_list, total_count, unique_count = _process_savers_result(result)
 
         title = _get_parser_title(parser)
-        title = title.replace('?', '')
-        title = title.replace('/', '')
-        title = title.replace('"', "'")
+        title = del_bad_symbols_from_name(title)
         datetime_now = str(datetime.now()).split('.')[0].replace(':', '-')
         core_path = f'parsing_results/{title} ({datetime_now})'
         os.makedirs(core_path, exist_ok=True)
@@ -143,6 +141,12 @@ def _get_parser_title(parser):
     return title
 
 
+def del_bad_symbols_from_name(name):
+    for x in ['/', ':', '*', '"', '<', '>', '|']:
+        name = name.replace(x, ' ')
+    return name
+
+
 def _write_saves_by_tracks(audios, core_path):
     folder_path = f'{core_path}/tracks'
     os.makedirs(folder_path, exist_ok=True)
@@ -151,13 +155,9 @@ def _write_saves_by_tracks(audios, core_path):
             title = audio['title']
             if 'subtitle' in audio.keys() and audio['subtitle'] and 'feat.' not in audio['subtitle']:
                 title += f" ({audio['subtitle']})"
-            title = title.replace('?', '')
-            title = title.replace('/', '')
-            title = title.replace('"', "'")
+            title = del_bad_symbols_from_name(title)
             artist = audio['artist']
-            artist = artist.replace('?', '')
-            artist = artist.replace('/', '')
-            artist = artist.replace('"', "'")
+            artist = del_bad_symbols_from_name(artist)
             audio_folder_path = f"{folder_path}/{artist} - {title}"
             os.makedirs(audio_folder_path, exist_ok=True)
             file_title = f"{audio_folder_path}/{artist} - {title} ({len(audio['savers'])})"
