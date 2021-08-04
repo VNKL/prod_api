@@ -291,7 +291,8 @@ class VkAds(VkEngine):
 
     def create_fake_group(self, group_name):
         group_id = None
-        params = {'title': group_name, 'type': 'public', 'public_category': 1002, 'subtype': 3}
+        params = {'title': group_name, 'type': 'public', 'subtype': 3,
+                  'public_category': 1002, 'public_subcategory': 3036}
         resp = self._api_response('groups.create', params)
         if resp and 'id' in resp.keys():
             group_id = resp['id']
