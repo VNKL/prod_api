@@ -42,6 +42,7 @@ def match_search_results(search_results, q):
     for audio in search_results:
         artists = [x['name'].lower() for x in audio['main_artists']] if 'main_artists' in audio.keys() else []
         artists += [x['name'].lower() for x in audio['featured_artists']] if 'featured_artists' in audio.keys() else []
+        artists += [audio['artist'].lower()] if 'artist' in audio.keys() else []
         check_artists = [True if x.lower() in artists else False for x in searched_artists]
         if any(check_artists) and title:
             audio_title = f"{audio['title']} ({audio['subtitle']})" if 'subtitle' in audio.keys() else audio['title']
@@ -49,7 +50,6 @@ def match_search_results(search_results, q):
                 matched_audios.append(audio)
         elif any(check_artists):
             matched_audios.append(audio)
-
     return matched_audios
 
 

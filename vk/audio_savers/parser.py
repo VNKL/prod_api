@@ -98,7 +98,7 @@ class AudioSaversParser(VkEngine):
             if artist_ids:
                 for artist_id in artist_ids:
                     resp = self._api_response('catalog.getAudioArtist', {'artist_id': artist_id, 'need_blocks': 1})
-                    if resp:
+                    if resp and 'audios' in resp.keys():
                         audios.extend(utils.mark_audios_by_source(resp['audios'], source='Карточка артиста'))
                         artist_group = utils.pars_url_from_artist_card(resp, url_type='group')
                         group_audios, group_id = self.get_by_group(artist_group, count_only, earlier_return=True)
@@ -452,7 +452,7 @@ class AudioSaversParser(VkEngine):
             if domains:
                 for domain in domains:
                     resp = self._api_response('catalog.getAudioArtist', {'artist_id': domain, 'need_blocks': 1})
-                    if resp:
+                    if resp and 'audios' in resp.keys():
                         audios.extend(utils.mark_audios_by_source(resp['audios'], source='Карточка артиста'))
 
         return audios
