@@ -24,7 +24,7 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
 
 
 def get_savers_list_one_process(args):
-    sleep(uniform(3, 5))
+    sleep(uniform(0, 5))
     vk = AudioSaversNew()
     savers_list = vk.pars_savers_one_thread(audio_id=args['audio_id'],
                                             offset_from=args['offset_min'],
