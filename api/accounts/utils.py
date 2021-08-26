@@ -61,7 +61,11 @@ def _get_remixsid_from_vk(login, password, n_try=0):
 
 def load_remixsid(n_try=0):
     if n_try < 5:
-        account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
+        try:
+            account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
+        except Exception:
+            sleep(1)
+            return load_remixsid(n_try=n_try + 1)
         if account:
             remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
             account.is_busy = True
@@ -69,15 +73,19 @@ def load_remixsid(n_try=0):
             return remixsid, account
 
         else:
-            accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
-            delta = timezone.timedelta(hours=24)
-            for acc in accounts:
-                if acc.rate_limit_date + delta > timezone.now():
-                    release_account(acc)
-                    remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
-                    acc.is_busy = True
-                    acc.save()
-                    return remixsid, acc
+            try:
+                accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
+                delta = timezone.timedelta(hours=24)
+                for acc in accounts:
+                    if acc.rate_limit_date + delta > timezone.now():
+                        release_account(acc)
+                        remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
+                        acc.is_busy = True
+                        acc.save()
+                        return remixsid, acc
+            except Exception:
+                sleep(1)
+                return load_remixsid(n_try=n_try + 1)
 
     return None, None
 
