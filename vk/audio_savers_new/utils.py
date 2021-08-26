@@ -85,7 +85,7 @@ def unpack_execute_get_users(resp):
 
 
 def calculate_n_threads(max_offset):
-    x = round(max_offset / 6400)
+    x = round(max_offset / 10000)
     if 1 <= x <= N_MAX_PROCESSES:
         return x
     elif x < 1:
