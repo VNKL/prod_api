@@ -42,18 +42,17 @@ class AudioSaversNew:
 
     def __init__(self):
         self.remixsid, self.account = load_remixsid()
-        # self.proxy = load_proxy()
-        self.proxy = None
+        self.proxy = load_proxy()
 
     def __del__(self):
         try:
             release_account(self.account)
         except AttributeError:
             pass
-        # try:
-        #     release_proxy(self.proxy)
-        # except AttributeError:
-        #     pass
+        try:
+            release_proxy(self.proxy)
+        except AttributeError:
+            pass
 
     def _get_savers_page(self, audio_id, offset=0, n_try=0):
         proxy_dict = {'http': f'http://{self.proxy}'} if self.proxy else None
