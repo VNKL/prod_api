@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from multiprocessing import Process, Manager
+from multiprocessing import Pool
 from time import sleep
 from random import uniform
 
@@ -10,32 +10,26 @@ from .utils import get_offset_batches, calculate_n_threads
 
 def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
     offset_batches = get_offset_batches(max_offset=max_offset, n_batches=n_threads)
-    result_list = Manager().list()
-    processes = []
-    for n, offset_batch in enumerate(offset_batches):
-        process = Process(target=get_savers_list_one_process,
-                          args=(audio_id, offset_batch['min'], offset_batch['max'], result_list, n + 1))
-        process.start()
-        processes.append(process)
-        sleep(uniform(3, 5))
 
-    for process in processes:
-        process.join()
+    args = []
+    for n, batch in enumerate(offset_batches):
+        args.append({'audio_id': audio_id, 'offset_min': batch['min'], 'offset_max': batch['max'], 'n_process': n + 1})
 
+    pool = Pool(processes=n_threads)
+    results = pool.map(get_savers_list_one_process, args)
     result = []
-    for x in result_list:
+    for x in results:
         result.extend(x)
-
     return result
 
 
-def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, n_process):
+def get_savers_list_one_process(args):
     vk = AudioSaversNew()
-    savers_list = vk.pars_savers_one_thread(audio_id=audio_id,
-                                            offset_from=offset_min,
-                                            offset_to=offset_max,
-                                            n_thread=n_process)
-    result_list.append(savers_list)
+    savers_list = vk.pars_savers_one_thread(audio_id=args['audio_id'],
+                                            offset_from=args['offset_min'],
+                                            offset_to=args['offset_max'],
+                                            n_thread=args['n_process'])
+    return savers_list
 
 
 class AudioSaversNew:
