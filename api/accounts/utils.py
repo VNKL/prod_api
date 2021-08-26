@@ -67,10 +67,13 @@ def load_remixsid(n_try=0):
             sleep(1)
             return load_remixsid(n_try=n_try + 1)
         if account:
-            remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
-            account.is_busy = True
-            account.save()
-            return remixsid, account
+            try:
+                remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
+                account.is_busy = True
+                account.save()
+                return remixsid, account
+            except Exception:
+                return load_remixsid(n_try=n_try + 1)
 
         else:
             try:
