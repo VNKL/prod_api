@@ -46,7 +46,7 @@ def _get_parsing_result(function, params, parser):
     process = Process(target=_do_parser_process, args=(function, params, result_dict))
     process.start()
 
-    while not _check_stop(process, parser, result_dict):
+    while not _check_stop(process, parser):
         sleep(uniform(10, 40))
 
     if result_dict and 'result' in result_dict.keys() and 'error' in result_dict.keys():
@@ -55,12 +55,9 @@ def _get_parsing_result(function, params, parser):
         return None, 'parser was stopped or removed'
 
 
-def _check_stop(process, parser, result_dict):
-    # process.join(timeout=0)
-    # print(process.is_alive())
-    # if not process.is_alive():
-    #     return True
-    if len(result_dict) > 0:
+def _check_stop(process, parser):
+    process.join(timeout=0)
+    if not process.is_alive():
         return True
 
     db.connections.close_all()

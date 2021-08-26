@@ -54,96 +54,85 @@ def _get_remixsid_from_vk(login, password, n_try=0):
             print(login, password, error_msg)
             sleep(uniform(3, 5))
             return _get_remixsid_from_vk(login, password, n_try=n_try+1)
-        except requests.exceptions.ConnectionError:
-            sleep(uniform(3, 5))
-            return _get_remixsid_from_vk(login, password, n_try=n_try+1)
 
 
 def load_remixsid(n_try=0):
     if n_try < 5:
-        try:
-            account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
-        except Exception:
-            sleep(1)
-            return load_remixsid(n_try=n_try + 1)
+        account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
         if account:
-            try:
-                remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
-                account.is_busy = True
-                account.save()
-                return remixsid, account
-            except Exception:
-                return load_remixsid(n_try=n_try + 1)
+            remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
+            account.is_busy = True
+            account.save()
+            return remixsid, account
 
         else:
-            try:
-                accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
-                delta = timezone.timedelta(hours=24)
-                for acc in accounts:
-                    if acc.rate_limit_date + delta > timezone.now():
-                        release_account(acc)
-                        remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
-                        acc.is_busy = True
-                        acc.save()
-                        return remixsid, acc
-            except Exception:
-                sleep(1)
-                return load_remixsid(n_try=n_try + 1)
+            accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
+            delta = timezone.timedelta(hours=24)
+            for acc in accounts:
+                if acc.rate_limit_date + delta > timezone.now():
+                    release_account(acc)
+                    remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
+                    acc.is_busy = True
+                    acc.save()
+                    return remixsid, acc
 
     return None, None
 
 
 def load_proxy():
-    try:
-        proxy = Proxy.objects.filter(is_alive=True, expiration_date__gt=timezone.now(), n_used__lt=5).first()
-    except Exception:
-        sleep(1)
-        return load_proxy()
-    if proxy:
-        proxy_str = f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
-        if _check_proxy(proxy_str):
-            try:
-                proxy.n_used += 1
-                proxy.save()
-                return f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
-            except Exception:
-                sleep(1)
-                return load_proxy()
-        else:
-            try:
-                proxy.is_alive = False
-                proxy.save()
-                return load_proxy()
-            except Exception:
-                return load_proxy()
-    else:
-        return None
+    return None
+    # try:
+    #     proxy = Proxy.objects.filter(is_alive=True, expiration_date__gt=timezone.now(), n_used__lt=5).first()
+    # except Exception:
+    #     sleep(1)
+    #     return load_proxy()
+    # if proxy:
+    #     proxy_str = f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
+    #     if _check_proxy(proxy_str):
+    #         try:
+    #             proxy.n_used += 1
+    #             proxy.save()
+    #             return f'{proxy.login}:{proxy.password}@{proxy.ip}:{proxy.port}'
+    #         except Exception:
+    #             sleep(1)
+    #             return load_proxy()
+    #     else:
+    #         try:
+    #             proxy.is_alive = False
+    #             proxy.save()
+    #             return load_proxy()
+    #         except Exception:
+    #             return load_proxy()
+    # else:
+    #     return None
 
 
 def release_proxy(proxy_str):
-    proxy_obj = _get_proxy_obj_from_str(proxy_str)
-    if proxy_obj:
-        try:
-            proxy_obj.n_used -= 1 if proxy_obj.n_used != 0 else 0
-            proxy_obj.save()
-        except Exception:
-            sleep(1)
-            release_proxy(proxy_str)
+    pass
+    # proxy_obj = _get_proxy_obj_from_str(proxy_str)
+    # if proxy_obj:
+    #     try:
+    #         proxy_obj.n_used -= 1
+    #         proxy_obj.save()
+    #     except Exception:
+    #         sleep(1)
+    #         release_proxy(proxy_str)
 
 
 def mark_proxy_dead(proxy_str):
-    proxy_obj = _get_proxy_obj_from_str(proxy_str)
-    if proxy_obj:
-        try:
-            proxy_obj.is_alive = False
-            proxy_obj.n_used -= 1
-            proxy_obj.save()
-        except Exception:
-            sleep(1)
-            mark_proxy_dead(proxy_str)
+    pass
+    # proxy_obj = _get_proxy_obj_from_str(proxy_str)
+    # if proxy_obj:
+    #     try:
+    #         proxy_obj.is_alive = False
+    #         proxy_obj.n_used -= 1
+    #         proxy_obj.save()
+    #     except Exception:
+    #         sleep(1)
+    #         mark_proxy_dead(proxy_str)
 
 
-def _get_proxy_obj_from_str(proxy_str, n_try=0):
+def _get_proxy_obj_from_str(proxy_str):
     if proxy_str:
         login_pass, ip_port = proxy_str.split('@')
         login, password = login_pass.split(':')
@@ -153,14 +142,13 @@ def _get_proxy_obj_from_str(proxy_str, n_try=0):
             return proxy_obj
         except Exception:
             sleep(1)
-            if n_try < 5:
-                return _get_proxy_obj_from_str(proxy_str, n_try=n_try+1)
+            return _get_proxy_obj_from_str(proxy_str)
 
 
 def _check_proxy(proxy_str):
     try:
         proxy_dict = {'http': f'http://{proxy_str}'}
-        requests.get('https://www.google.com/', proxies=proxy_dict, timeout=10)
+        requests.get('https://www.google.com/', proxies=proxy_dict, timeout=1)
         return True
     except (requests.exceptions.ConnectTimeout, requests.exceptions.ConnectionError):
         return False
