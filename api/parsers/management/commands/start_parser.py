@@ -74,10 +74,10 @@ def _check_stop(process, parser, result_dict):
 
 def _do_parser_process(function, params, result_dict):
     result, error = None, None
-    try:
-        result = function(**params)
-    except Exception as error:
-        pass
+    # try:
+    result = function(**params)
+    # except Exception as error:
+    #     pass
     result_dict.update({'result': result, 'error': error})
 
 
