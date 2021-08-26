@@ -41,7 +41,10 @@ class VkEngine:
 
     def __del__(self):
         release_account(self.account)
-        release_proxy(self.proxy)
+        try:
+            release_proxy(self.proxy)
+        except AttributeError:
+            pass
 
     def _get_api_response(self, url, data, captcha_sid=None, captcha_key=None):
         """

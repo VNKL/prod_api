@@ -4,7 +4,7 @@ from multiprocessing import Process, Manager
 from time import sleep
 from random import uniform
 
-from api.accounts.utils import load_remixsid, release_account
+from api.accounts.utils import load_remixsid, release_account, load_proxy, release_proxy
 from .utils import get_offset_batches, calculate_n_threads
 
 
@@ -41,21 +41,34 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, n
 class AudioSaversNew:
 
     def __init__(self):
-        remixsid, account = load_remixsid()
-        self.remixsid = remixsid
-        self.account = account
+        self.remixsid, self.account = load_remixsid()
+        # self.proxy = load_proxy()
+        self.proxy = None
 
     def __del__(self):
         try:
             release_account(self.account)
         except AttributeError:
             pass
+        # try:
+        #     release_proxy(self.proxy)
+        # except AttributeError:
+        #     pass
 
-    def _get_savers_page(self, audio_id, offset=0):
+    def _get_savers_page(self, audio_id, offset=0, n_try=0):
+        proxy_dict = {'http': f'http://{self.proxy}'} if self.proxy else None
         request_url = 'https://m.vk.com/like'
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
-        page = requests.post(request_url, cookies={'remixsid': self.remixsid}, params=request_data).text
-        return page
+        try:
+            page = requests.post(request_url,
+                                 cookies={'remixsid': self.remixsid},
+                                 params=request_data,
+                                 proxies=proxy_dict).text
+            return page
+        except requests.exceptions.ConnectionError:
+            sleep(uniform(3, 5))
+            if n_try < 10:
+                return self._get_savers_page(audio_id=audio_id, offset=offset, n_try=n_try+1)
 
     @staticmethod
     def _get_users_from_page(page, audio_id):

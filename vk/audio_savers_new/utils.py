@@ -3,6 +3,9 @@ from python_rucaptcha import ImageCaptcha
 from api.settings import RUCAPTCHA_KEY
 
 
+N_MAX_PROCESSES = 80
+
+
 def anticaptcha(captcha_img, rucaptcha_key):
     """
     Функция для работы с API рукапчи
@@ -83,9 +86,9 @@ def unpack_execute_get_users(resp):
 
 def calculate_n_threads(max_offset):
     x = round(max_offset / 6400)
-    if 1 <= x <= 8:
+    if 1 <= x <= N_MAX_PROCESSES:
         return x
     elif x < 1:
         return 1
     else:
-        return 8
+        return N_MAX_PROCESSES
