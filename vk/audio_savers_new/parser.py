@@ -37,7 +37,7 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
     return result
 
 
-def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process):
+def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process, n_try=0):
     try:
         vk = AudioSaversNew()
         savers_list = vk.pars_savers_one_thread(audio_id=audio_id,
@@ -53,7 +53,11 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
         result_list.append(ids_list)
         print(f'Process: {n_process}   |   Finished converting user_domains to user_ids')
     except Exception as err_msg:
-        print(f'!!! error in get_savers_list_one_process in process {n_process}', err_msg)
+        if n_try < 3:
+            get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process,
+                                        n_try=n_try+1)
+        else:
+            print(f'!!! error in get_savers_list_one_process in process {n_process}:', err_msg)
     finished_list.append(n_process)
 
 
