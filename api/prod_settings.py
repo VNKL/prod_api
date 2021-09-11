@@ -27,6 +27,9 @@ CORS_ORIGIN_WHITELIST = [
     'http://77.223.106.195:80',
     'http://77.223.106.195',
     'http://from-shame-to-fame.ru',
+    'http://77.223.106.194:90',
+    'http://77.223.106.194:80',
+    'http://77.223.106.194',
 ]
 
 REST_FRAMEWORK = {
