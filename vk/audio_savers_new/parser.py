@@ -38,12 +38,15 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
 
 
 def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process):
-    vk = AudioSaversNew()
-    savers_list = vk.pars_savers_one_thread(audio_id=audio_id,
-                                            offset_from=offset_min,
-                                            offset_to=offset_max,
-                                            n_thread=n_process)
-    result_list.append(savers_list)
+    try:
+        vk = AudioSaversNew()
+        savers_list = vk.pars_savers_one_thread(audio_id=audio_id,
+                                                offset_from=offset_min,
+                                                offset_to=offset_max,
+                                                n_thread=n_process)
+        result_list.append(savers_list)
+    except Exception as err_msg:
+        print('!!! error in get_savers_list_one_process', err_msg)
     finished_list.append(n_process)
 
 
@@ -75,7 +78,9 @@ class AudioSaversNew:
     def _get_users_from_page(page, audio_id):
         soup = BeautifulSoup(page, 'lxml')
         a_hrefs = [x['href'] for x in soup.find_all('a')]
-        slice_start, slice_end = a_hrefs.index('/menu'), None
+        if '/menu' not in a_hrefs:
+            print(a_hrefs)
+        slice_start, slice_end = a_hrefs.index('/menu') if '/menu' in a_hrefs else 0, None
         max_offset = 0
 
         pagination = f'/like?act=members&object=audio{audio_id}&offset=0'
