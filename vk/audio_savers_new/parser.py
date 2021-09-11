@@ -48,7 +48,6 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
 
 
 def _check_processes_finish(finished_list, n_threads):
-    print(finished_list)
     if len(finished_list) == n_threads:
         return True
 
