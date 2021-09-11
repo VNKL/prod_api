@@ -1,6 +1,7 @@
 from python_rucaptcha import ImageCaptcha
 
 from api.settings import RUCAPTCHA_KEY
+from api.accounts.models import ParsingThreadCount
 
 
 def anticaptcha(captcha_img, rucaptcha_key):
@@ -82,8 +83,16 @@ def unpack_execute_get_users(resp):
 
 
 def calculate_n_threads(max_offset):
-    max_threads = 64
-    x = round(max_offset / 6400)
+    try:
+        threads_obj = ParsingThreadCount.objects.filter().first()
+        max_threads = threads_obj.max_threads
+        offset_param = threads_obj.offset_param
+    except Exception as err_msg:
+        print('!!! error in calculate_n_threads', err_msg)
+        max_threads = 64
+        offset_param = 6400
+
+    x = round(max_offset / offset_param)
     if 1 <= x <= max_threads:
         return x
     elif x < 1:
