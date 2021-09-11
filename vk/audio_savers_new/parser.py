@@ -28,7 +28,7 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
         sleep(uniform(1, 2))
 
     for process in processes:
-        process.terminate()
+        process.kill()
 
     result = []
     for x in result_list:
