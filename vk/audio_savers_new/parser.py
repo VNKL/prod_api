@@ -145,7 +145,7 @@ class AudioSaversNew:
                 next_users, _ = self._get_users_from_page(page=page, audio_id=audio_id)
                 users.extend(next_users)
                 print(f'Process: {n_thread}   |   Offset: {offset} / {offset_to}')
-            except Exception:
-                print(page)
+            except Exception as err_msg:
+                print('!!! pars_savers_one_thread error', err_msg)
 
         return users
