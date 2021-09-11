@@ -44,9 +44,16 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
                                                 offset_from=offset_min,
                                                 offset_to=offset_max,
                                                 n_thread=n_process)
-        result_list.append(savers_list)
+
+        print(f'Process: {n_process}   |   Starting converting user_domains to user_ids')
+        from vk.audio_savers.parser import AudioSaversParser
+        vk = AudioSaversParser()
+        ids_dict = vk.get_user_ids_from_domains(domains=savers_list)
+        ids_list = list(ids_dict.values())
+        result_list.append(ids_list)
+        print(f'Process: {n_process}   |   Finished converting user_domains to user_ids')
     except Exception as err_msg:
-        print('!!! error in get_savers_list_one_process', err_msg)
+        print(f'!!! error in get_savers_list_one_process in process {n_process}', err_msg)
     finished_list.append(n_process)
 
 
@@ -141,6 +148,11 @@ class AudioSaversNew:
         page = self._get_savers_page(audio_id=audio_id)
         users, max_offset = self._get_users_from_page(page=page, audio_id=audio_id)
 
+        from vk.audio_savers.parser import AudioSaversParser
+        vk = AudioSaversParser()
+        ids_dict = vk.get_user_ids_from_domains(domains=users)
+        users = list(ids_dict.values())
+
         n_threads = calculate_n_threads(max_offset=max_offset)
 
         if max_offset:
@@ -158,5 +170,7 @@ class AudioSaversNew:
                 print(f'Process: {n_thread}   |   Offset: {offset} / {offset_to}')
             except Exception as err_msg:
                 print('!!! pars_savers_one_thread error', err_msg)
+
+        print(f'Process: {n_thread}   |   Parsing is finished')
 
         return users

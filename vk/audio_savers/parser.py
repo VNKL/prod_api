@@ -14,28 +14,13 @@ from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, 
 def get_audio_savers_multiprocess(audios):
     vk = AudioSaversNew()
     audios_with_savers_list = []
-    all_savers_list = []
     for n, audio in enumerate(audios):
         print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Start parsing audio savers")
         audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
         savers_list = vk.get_savers_list(audio_id=audio_id)
         audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=savers_list)
         audios_with_savers_list.append(audio_with_savers)
-        all_savers_list.extend(savers_list)
         print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Finished parsing audio savers")
-
-    print('Start converting user domains to user ids')
-    vk = AudioSaversParser()
-    user_domains_to_ids_dict = vk.get_user_ids_from_domains(domains=all_savers_list)
-    print('Finished converting user domains to user ids')
-    if user_domains_to_ids_dict:
-        for audio in audios_with_savers_list:
-            savers_ids = []
-            for domain in audio['savers']:
-                if domain in user_domains_to_ids_dict.keys():
-                    savers_ids.append(user_domains_to_ids_dict[domain])
-            if savers_ids:
-                audio['savers'] = savers_ids
 
     return audios_with_savers_list
 
