@@ -11,16 +11,24 @@ from .utils import get_offset_batches, calculate_n_threads
 def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
     offset_batches = get_offset_batches(max_offset=max_offset, n_batches=n_threads)
     result_list = Manager().list()
+    finished_list = Manager().list()
     processes = []
     for n, offset_batch in enumerate(offset_batches):
         process = Process(target=get_savers_list_one_process,
-                          args=(audio_id, offset_batch['min'], offset_batch['max'], result_list, n + 1))
+                          args=(audio_id, offset_batch['min'], offset_batch['max'], result_list, finished_list, n))
         process.start()
         processes.append(process)
-        sleep(uniform(3, 5))
+        sleep(uniform(1, 2))
+
+    parsing_in_process = True
+    while parsing_in_process:
+        is_finished = _check_processes_finish(finished_list, n_threads)
+        if is_finished:
+            parsing_in_process = False
+        sleep(uniform(1, 2))
 
     for process in processes:
-        process.join()
+        process.terminate()
 
     result = []
     for x in result_list:
@@ -29,13 +37,20 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
     return result
 
 
-def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, n_process):
+def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process):
     vk = AudioSaversNew()
     savers_list = vk.pars_savers_one_thread(audio_id=audio_id,
                                             offset_from=offset_min,
                                             offset_to=offset_max,
                                             n_thread=n_process)
     result_list.append(savers_list)
+    finished_list.append(n_process)
+
+
+def _check_processes_finish(finished_list, n_threads):
+    print(finished_list)
+    if len(finished_list) == n_threads:
+        return True
 
 
 class AudioSaversNew:
