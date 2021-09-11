@@ -78,9 +78,15 @@ class AudioSaversNew:
     def _get_users_from_page(page, audio_id):
         soup = BeautifulSoup(page, 'lxml')
         a_hrefs = [x['href'] for x in soup.find_all('a')]
-        if '/menu' not in a_hrefs:
-            print(a_hrefs)
-        slice_start, slice_end = a_hrefs.index('/menu') if '/menu' in a_hrefs else 0, None
+        if '/menu' in a_hrefs:
+            slice_start = a_hrefs.index('/menu')
+        elif '/join' in a_hrefs:
+            slice_start = a_hrefs.index('/join')
+        elif len(a_hrefs) > 1:
+            slice_start = 1
+        else:
+            slice_start = 0
+        slice_end = None
         max_offset = 0
 
         pagination = f'/like?act=members&object=audio{audio_id}&offset=0'
