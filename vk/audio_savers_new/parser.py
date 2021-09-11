@@ -25,7 +25,7 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
         is_finished = _check_processes_finish(finished_list, n_threads)
         if is_finished:
             parsing_in_process = False
-        sleep(uniform(1, 2))
+        sleep(uniform(0.5, 1))
 
     for process in processes:
         process.kill()
