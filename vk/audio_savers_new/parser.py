@@ -12,27 +12,35 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
     offset_batches = get_offset_batches(max_offset=max_offset, n_batches=n_threads)
     result_list = Manager().list()
     finished_list = Manager().list()
+    for x in range(n_threads):
+        finished_list.append(0)
+
     processes = []
     for n, offset_batch in enumerate(offset_batches):
         process = Process(target=get_savers_list_one_process,
                           args=(audio_id, offset_batch['min'], offset_batch['max'], result_list, finished_list, n))
         process.start()
         processes.append(process)
-        sleep(uniform(1, 2))
+        sleep(uniform(0.5, 1))
 
     parsing_in_process = True
     while parsing_in_process:
-        is_finished = _check_processes_finish(finished_list, n_threads)
-        if is_finished:
+        if all(finished_list):
             parsing_in_process = False
         sleep(uniform(0.5, 1))
+
+    print('========== parsing_in_process = False ===========')
 
     for process in processes:
         process.kill()
 
+    print('========== parsing processes are killed ===========')
+
     result = []
     for x in result_list:
         result.extend(x)
+
+    print('========== ready to return parsing result ===========')
 
     return result
 
@@ -52,18 +60,15 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
         ids_list = list(ids_dict.values())
         result_list.append(ids_list)
         print(f'Process: {n_process}   |   Finished converting user_domains to user_ids')
+
     except Exception as err_msg:
         if n_try < 3:
             get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process,
                                         n_try=n_try+1)
         else:
             print(f'!!! error in get_savers_list_one_process in process {n_process}:', err_msg)
-    finished_list.append(n_process)
 
-
-def _check_processes_finish(finished_list, n_threads):
-    if len(finished_list) == n_threads:
-        return True
+    finished_list[n_process] = 1
 
 
 class AudioSaversNew:

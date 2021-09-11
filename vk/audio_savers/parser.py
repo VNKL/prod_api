@@ -15,7 +15,7 @@ def get_audio_savers_multiprocess(audios):
     vk = AudioSaversNew()
     audios_with_savers_list = []
     for n, audio in enumerate(audios):
-        print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Start parsing audio savers")
+        print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Start parsing audio savers ({audio['savers_count']})")
         audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
         savers_list = vk.get_savers_list(audio_id=audio_id)
         audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=savers_list)
