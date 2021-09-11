@@ -144,6 +144,10 @@ def _get_parser_title(parser):
 def del_bad_symbols_from_name(name):
     for x in ['/', ':', '*', '"', '<', '>', '|']:
         name = name.replace(x, ' ')
+
+    if len(name) > 30:
+        name = name[:30]
+
     return name
 
 
