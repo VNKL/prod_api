@@ -27,6 +27,9 @@ def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
     while parsing_in_process:
         if all(finished_list):
             parsing_in_process = False
+        for n, status in enumerate(finished_list):
+            if status:
+                processes[n].kill()
         sleep(uniform(0.5, 1))
 
     print('========== parsing_in_process = False ===========')
@@ -59,6 +62,7 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
         ids_dict = vk.get_user_ids_from_domains(domains=savers_list)
         ids_list = list(ids_dict.values())
         result_list.append(ids_list)
+        finished_list[n_process] = 1
         print(f'Process: {n_process}   |   Finished converting user_domains to user_ids')
 
     except Exception as err_msg:
