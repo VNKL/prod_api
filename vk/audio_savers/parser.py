@@ -14,6 +14,7 @@ from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, 
 def get_audio_savers_multiprocess(audios):
     vk = AudioSaversNew()
     audios_with_savers_list = []
+    audios = [x for x in audios if x['savers_count'] > 0]
     for n, audio in enumerate(audios):
         print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Start parsing audio savers ({audio['savers_count']})")
         audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
