@@ -63,6 +63,7 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
 
     except Exception as err_msg:
         if n_try < 3:
+            print(f'!!! error in get_savers_list_one_process in process {n_process}:', err_msg, f', n_try = {n_try}')
             get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, finished_list, n_process,
                                         n_try=n_try+1)
         else:
