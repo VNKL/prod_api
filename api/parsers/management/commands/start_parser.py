@@ -41,10 +41,11 @@ def start_parser(parser_id):
 
 def _get_parsing_result(function, params, parser):
     try:
+        result, error = None, None
         db.connections.close_all()
         ticket_manager = Manager()
         result_dict = ticket_manager.dict()
-        process = Process(target=_do_parser_process, args=(function, params, result_dict))
+        process = Process(target=_do_parser_process, args=(function, params, result_dict, result, error))
         process.start()
 
         while process.is_alive():
@@ -64,13 +65,12 @@ def _get_parsing_result(function, params, parser):
         return None, err_msg
 
 
-def _do_parser_process(function, params, result_dict):
-    result, error = None, None
+def _do_parser_process(function, params, result_dict, result, error):
     try:
         result = function(**params)
-    except Exception as error:
-        pass
-    result_dict.update({'result': result, 'error': error})
+        result_dict.update({'result': result, 'error': error})
+    except Exception as do_parser_process_err_msg:
+        result_dict.update({'result': result, 'error': do_parser_process_err_msg})
 
 
 def _start_parsing(parser):
