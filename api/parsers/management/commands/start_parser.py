@@ -40,33 +40,28 @@ def start_parser(parser_id):
 
 
 def _get_parsing_result(function, params, parser):
-    db.connections.close_all()
-    ticket_manager = Manager()
-    result_dict = ticket_manager.dict()
-    process = Process(target=_do_parser_process, args=(function, params, result_dict))
-    process.start()
+    try:
+        db.connections.close_all()
+        ticket_manager = Manager()
+        result_dict = ticket_manager.dict()
+        process = Process(target=_do_parser_process, args=(function, params, result_dict))
+        process.start()
 
-    while not _check_stop(process, parser):
-        sleep(uniform(10, 40))
+        while process.is_alive():
+            if result_dict and 'result' in result_dict.keys() and 'error' in result_dict.keys():
+                process.kill()
+                return result_dict['result'], result_dict['error']
+            db.connections.close_all()
+            parser = Parser.objects.filter(pk=parser.pk).first()
+            if not parser or parser.status in [0, 2, 4]:
+                process.kill()
+                return None, 'parser was stopped or removed'
+            sleep(uniform(3, 5))
 
-    if result_dict and 'result' in result_dict.keys() and 'error' in result_dict.keys():
-        return result_dict['result'], result_dict['error']
-    else:
-        return None, 'parser was stopped or removed'
+        return None, 'parser process not alive and have no data to return'
 
-
-def _check_stop(process, parser):
-    process.join(timeout=0)
-    if not process.is_alive():
-        return True
-
-    db.connections.close_all()
-    parser = Parser.objects.filter(pk=parser.pk).first()
-    if not parser or parser.status == 0 or parser.status == 2 or parser.status == 4:
-        process.terminate()
-        return True
-
-    return False
+    except Exception as err_msg:
+        return None, err_msg
 
 
 def _do_parser_process(function, params, result_dict):
