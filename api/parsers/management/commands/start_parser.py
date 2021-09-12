@@ -59,7 +59,10 @@ def _get_parsing_result(function, params, parser):
                 return None, 'parser was stopped or removed'
             sleep(uniform(3, 5))
 
-        return None, 'parser process not alive and have no data to return'
+        if result_dict and 'result' in result_dict.keys() and 'error' in result_dict.keys():
+            return result_dict['result'], result_dict['error']
+        else:
+            return None, 'parser process not alive and have no data to return'
 
     except Exception as err_msg:
         return None, err_msg
