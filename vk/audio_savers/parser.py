@@ -14,7 +14,7 @@ from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, 
 def get_audio_savers_multiprocess(audios):
     vk = AudioSaversNew()
     audios_with_savers_list = []
-    audios = [x for x in audios if x['savers_count'] > 0]
+    audios = clean_up_garbage_audios(audios)
     for n, audio in enumerate(audios):
         print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Start parsing audio savers ({audio['savers_count']})")
         audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
@@ -24,6 +24,28 @@ def get_audio_savers_multiprocess(audios):
         print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Finished parsing audio savers")
 
     return audios_with_savers_list
+
+
+def clean_up_garbage_audios(audios):
+    audios = [x for x in audios if x['savers_count'] > 0]
+    audios_dict = {}
+    for audio in audios:
+        full_name = f"{audio['artist']} - {audio['title']}"
+        if 'subtitle' in audio.keys():
+            full_name += f" ({audio['subtitle']})"
+        if full_name in audios_dict.keys():
+            audios_dict[full_name].append(audio)
+        else:
+            audios_dict[full_name] = [audio]
+
+    cleaned_audios = []
+    for one_name_audios in audios_dict.values():
+        one_name_audios.sort(key=lambda x: x['savers_count'], reverse=True)
+        cleaned_audios.append(one_name_audios[0])
+
+    cleaned_audios.sort(key=lambda x: x['savers_count'], reverse=True)
+
+    return cleaned_audios
 
 
 class AudioSaversParser(VkEngine):
