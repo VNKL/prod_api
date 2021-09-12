@@ -2,6 +2,7 @@ import requests
 import vk_api
 
 from django.utils import timezone
+from django import db
 from time import sleep
 from random import uniform
 
@@ -13,6 +14,7 @@ def load_account(n_try=0):
     if n_try < 5:
 
         try:
+            db.connections.close_all()
             account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
         except Exception:
             sleep(1)
@@ -27,6 +29,7 @@ def load_account(n_try=0):
                 return load_account(n_try=n_try + 1)
         else:
             try:
+                db.connections.close_all()
                 accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
                 delta = timezone.timedelta(hours=24)
                 for acc in accounts:
@@ -59,6 +62,7 @@ def _get_remixsid_from_vk(login, password, n_try=0):
 def load_remixsid(n_try=0):
     if n_try < 5:
         try:
+            db.connections.close_all()
             account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
         except Exception:
             sleep(1)
@@ -70,6 +74,7 @@ def load_remixsid(n_try=0):
             return remixsid, account
 
         else:
+            db.connections.close_all()
             accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
             delta = timezone.timedelta(hours=24)
             for acc in accounts:

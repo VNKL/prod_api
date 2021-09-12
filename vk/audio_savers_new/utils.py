@@ -1,4 +1,5 @@
 from python_rucaptcha import ImageCaptcha
+from django import db
 
 from api.settings import RUCAPTCHA_KEY
 from api.accounts.models import ParsingThreadCount
@@ -84,6 +85,7 @@ def unpack_execute_get_users(resp):
 
 def calculate_n_threads(max_offset):
     try:
+        db.connections.close_all()
         threads_obj = ParsingThreadCount.objects.filter().first()
         max_threads = threads_obj.max_threads
         offset_param = threads_obj.offset_param
