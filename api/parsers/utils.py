@@ -7,6 +7,7 @@ from collections import Counter
 from datetime import datetime
 
 from django.utils import timezone
+from django import db
 
 from .models import Parser, Audio
 from vk.audio_savers.utils import pars_post_id_from_post_url
@@ -34,13 +35,14 @@ def create_parser(user, data):
                     count_only=data['count_only'],
                     start_date=timezone.now())
     parser.save()
-
+    db.connections.close_all()
     return {'parser_id': parser.pk}
 
 
 def delete_parser(user, data):
     parser = Parser.objects.filter(owner=user, pk=data['id']).first()
     if not parser:
+        db.connections.close_all()
         return {'error': f'not found or no permissions to parser with id {data["id"]}'}
 
     zip_path = parser.result_path
@@ -48,6 +50,7 @@ def delete_parser(user, data):
         os.remove(zip_path)
 
     parser.delete()
+    db.connections.close_all()
     return {'response': f"parser with id {data['id']} was deleted"}
 
 
@@ -67,7 +70,9 @@ def save_parsing_result(parser, result):
         parser.status = 2
         parser.finish_date = timezone.now()
         parser.save()
+        db.connections.close_all()
     else:
+        db.connections.close_all()
         _save_results_error(parser)
 
 
@@ -291,6 +296,7 @@ def _create_audio_obj(audio, parser):
     audio = audio.copy()
     audio.pop('savers', None)
     new_audio = Audio(parser=parser, **audio)
+    db.connections.close_all()
     return new_audio
 
 
@@ -299,6 +305,7 @@ def _save_results_error(parser):
     parser.error = 'Error with saving results'
     parser.finish_date = timezone.now()
     parser.save()
+    db.connections.close_all()
 
 
 def _refactor_parsed_audio_format(audio):

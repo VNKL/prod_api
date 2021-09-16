@@ -89,6 +89,7 @@ def calculate_n_threads(max_offset):
         threads_obj = ParsingThreadCount.objects.filter().first()
         max_threads = threads_obj.max_threads
         offset_param = threads_obj.offset_param
+        db.connections.close_all()
     except Exception as err_msg:
         print('!!! error in calculate_n_threads', err_msg)
         max_threads = 64

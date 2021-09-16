@@ -1,6 +1,7 @@
 import vk_api
 
 from django.core.management.base import BaseCommand
+from django import db
 from random import randint
 
 from vk.auth.auth import VKAuth
@@ -25,6 +26,7 @@ def add_account(login, password):
     account = Account.objects.filter(login=login).first()
     if account and account.is_alive:
         acc_serializer = AccountSerializer(account)
+        db.connections.close_all()
         return acc_serializer.data
 
     new_password = random_password()
@@ -51,6 +53,7 @@ def save_account(login, password, token, user_id):
                       token=token,
                       user_id=user_id)
     account.save()
+    db.connections.close_all()
     return {
         'login': login,
         'password': password,

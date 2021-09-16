@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.accounts.models import Account
 
@@ -51,7 +52,7 @@ def reset_all(is_busy=False, is_rate_limited=False, is_alive=False, rate_limit_d
         updated_accs.append(acc)
 
     Account.objects.bulk_update(updated_accs, fields=updated_fields, batch_size=40)
-
+    db.connections.close_all()
     return updated_accs
 
 
@@ -61,6 +62,7 @@ def reset_one(login=None, user_id=None, is_busy=False, is_rate_limited=False, is
     elif user_id:
         account = Account.objects.filter(login=login).first()
     else:
+        db.connections.close_all()
         return {'details': f'login or user_id required'}
 
     if account:
@@ -73,6 +75,8 @@ def reset_one(login=None, user_id=None, is_busy=False, is_rate_limited=False, is
         if rate_limit_date:
             account.rate_limit_date = None
         account.save()
+        db.connections.close_all()
         return account
 
+    db.connections.close_all()
     return {'details': f'Account with {"login" if login else "user_id"} "{login if login else user_id}" is not found'}

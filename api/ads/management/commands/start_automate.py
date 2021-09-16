@@ -1,6 +1,7 @@
 from time import sleep
 from datetime import datetime, timedelta, time
 from django.utils import timezone
+from django import db
 
 from django.core.management.base import BaseCommand
 
@@ -52,11 +53,13 @@ def _start_automate(automate):
     finish_time = _get_finish_time(automate)
 
     ads = Ad.objects.filter(campaign=campaign)
+    db.connections.close_all()
     vk.update_ads(cabinet_id=campaign.cabinet_id, ad_ids=[x.ad_id for x in ads], money_limit=0)
 
     next_update_time = datetime.now() - timedelta(minutes=15)
     while datetime.now() < finish_time:
         automate = Automate.objects.filter(pk=automate.pk).first()
+        db.connections.close_all()
         if automate and automate.status == 0:
             break
         elif not automate:
@@ -66,6 +69,7 @@ def _start_automate(automate):
             campaign.refresh_from_db()
             campaign, money_limit = update_campaign_stats(campaign)
             _update_ads(campaign, automate, vk)
+            db.connections.close_all()
             next_update_time = datetime.now() + timedelta(minutes=15)
             if campaign.spent == money_limit or campaign.status == 2:
                 break
@@ -80,6 +84,8 @@ def _start_automate(automate):
         automate.status = 0
         automate.finish_date = timezone.now()
         automate.save()
+
+    db.connections.close_all()
 
 
 def _del_existed_automates(automate):
@@ -135,6 +141,8 @@ def _update_ads(campaign, automate, vk):
 
     if updated_ads:
         Ad.objects.bulk_update(updated_ads, fields=['status'], batch_size=40)
+
+    db.connections.close_all()
 
 
 def _do_ads_update_logic(ad, cpm_list, current_cost, stop_cost, target_cost, to_start, to_stop, to_update_cpm,

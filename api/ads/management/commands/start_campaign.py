@@ -6,6 +6,7 @@ from time import sleep
 from random import uniform
 
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.ads.models import Campaign, Ad, Audio, Playlist
 from vk.ads.ads import VkAds
@@ -35,10 +36,12 @@ def start_campaign(campaign_id):
     else:
         try:
             _start_campaign(campaign)
+            db.connections.close_all()
         except Exception:
             campaign.errors = traceback.format_exc()
             campaign.status = 3
             campaign.save()
+            db.connections.close_all()
 
 
 def _start_campaign(campaign):
@@ -78,6 +81,7 @@ def _start_campaign(campaign):
         campaign.audience_count = sum([x.audience_count for x in ads])
 
     campaign.save()
+    db.connections.close_all()
 
 
 def _wait_queue(campaign):
@@ -93,13 +97,16 @@ def _wait_queue(campaign):
                         earlier_running[n] = False
                 except Campaign.DoesNotExist:
                     earlier_running[n] = False
+                db.connections.close_all()
 
     campaign = Campaign.objects.filter(pk=campaign.pk).first()
     if campaign:
         campaign.status = 5
         campaign.save()
+        db.connections.close_all()
         return campaign
     else:
+        db.connections.close_all()
         return False
 
 
@@ -144,8 +151,10 @@ def _create_campaign(reference, vk, campaign, errors):
             campaign.campaign_id = camp_id
             campaign.campaign_name = camp_name
             campaign.save()
+            db.connections.close_all()
             return camp_id
         else:
+            db.connections.close_all()
             err_msg = f'Error with create campaign with name "{camp_name}" in cabinet {campaign.cabinet_id}'
             err_msg = err_msg + f' and client {campaign.client_id}' if campaign.client_id else ''
             errors.append(err_msg)
@@ -397,6 +406,7 @@ def _save_ad(campaign, ad_id, ad_name, post_replica, audience_count):
     if audios_objs:
         Audio.objects.bulk_create(audios_objs)
 
+    db.connections.close_all()
     return ad
 
 
@@ -415,3 +425,4 @@ def _save_cabinet_name(vk, campaign):
     campaign.cabinet_name = cab_name
     campaign.client_name = cli_name
     campaign.save()
+    db.connections.close_all()

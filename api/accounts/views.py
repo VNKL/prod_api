@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django import db
 from rest_framework import viewsets, views, status
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -46,13 +47,16 @@ class AccountGetView(views.APIView):
             account = get_object_or_404(Account, user_id=request.query_params['user_id'])
         if account:
             acc_serializer = AccountSerializer(account)
+            db.connections.close_all()
             return Response(acc_serializer.data)
         else:
+            db.connections.close_all()
             return Response({'detail': 'login or user_id are required'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AccountGetAllViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all().order_by('user_id')
+    db.connections.close_all()
     serializer_class = AccountSerializer
     permission_classes = [permissions.IsAdminUser]
 
@@ -118,5 +122,6 @@ class ProxyDelExpiredView(views.APIView):
 
 class ProxyGetAllViewSet(viewsets.ModelViewSet):
     queryset = Proxy.objects.all().order_by('-expiration_date')
+    db.connections.close_all()
     serializer_class = ProxySerializer
     permission_classes = [permissions.IsAdminUser]

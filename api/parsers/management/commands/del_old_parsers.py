@@ -44,3 +44,4 @@ def _delete_old_parsers():
             if zip_path:
                 os.remove(zip_path)
             parser.delete()
+    db.connections.close_all()

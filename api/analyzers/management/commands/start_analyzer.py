@@ -28,6 +28,7 @@ class Command(BaseCommand):
 def start_analyzer(analyzer_id):
 
     analyzer = Analyzer.objects.filter(pk=analyzer_id).first()
+    db.connections.close_all()
     if not analyzer:
         print(f'no analyzer with id {analyzer_id}')
     else:
@@ -80,6 +81,8 @@ def _start_analyzing(analyzer):
             analyzer.finish_date = timezone.now()
             analyzer.save()
 
+    db.connections.close_all()
+
 
 def _check_stop(process, analyzer):
     process.join(timeout=0)
@@ -88,6 +91,7 @@ def _check_stop(process, analyzer):
 
     db.connections.close_all()
     scanner = Analyzer.objects.filter(pk=analyzer.pk).first()
+    db.connections.close_all()
     if not scanner or scanner.status == 0 or scanner.status == 2 or scanner.status == 4:
         process.terminate()
         return True
@@ -113,6 +117,8 @@ def _wait_queue(analyzer):
     if analyzer:
         analyzer.status = 1
         analyzer.save()
+        db.connections.close_all()
         return analyzer
     else:
+        db.connections.close_all()
         return False

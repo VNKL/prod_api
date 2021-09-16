@@ -18,11 +18,13 @@ def load_account(n_try=0):
             account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
         except Exception:
             sleep(1)
+            db.connections.close_all()
             return load_account(n_try=n_try + 1)
         if account:
             try:
                 account.is_busy = True
                 account.save()
+                db.connections.close_all()
                 return account
             except Exception:
                 sleep(1)
@@ -37,12 +39,15 @@ def load_account(n_try=0):
                         release_account(acc)
                         acc.is_busy = True
                         acc.save()
+                        db.connections.close_all()
                         return acc
             except Exception:
                 sleep(1)
+                db.connections.close_all()
                 return load_account(n_try=n_try + 1)
 
             sleep(300)
+            db.connections.close_all()
             return load_account(n_try=n_try + 1)
 
 
@@ -66,15 +71,18 @@ def load_remixsid(n_try=0):
             account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
         except Exception:
             sleep(1)
+            db.connections.close_all()
             return load_account(n_try=n_try + 1)
         if account:
             try:
                 remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
                 account.is_busy = True
                 account.save()
+                db.connections.close_all()
                 return remixsid, account
             except Exception as err_msg:
                 print('!!! error with _get_remixsid_from_vk:', err_msg)
+                db.connections.close_all()
                 return load_account(n_try=n_try+1)
 
         else:
@@ -87,8 +95,10 @@ def load_remixsid(n_try=0):
                     remixsid = _get_remixsid_from_vk(login=account.login, password=account.password)
                     acc.is_busy = True
                     acc.save()
+                    db.connections.close_all()
                     return remixsid, acc
 
+    db.connections.close_all()
     return None, None
 
 
@@ -176,6 +186,7 @@ def mark_account_dead(account, n_try=0):
         except Exception:
             sleep(1)
             mark_account_dead(account, n_try=n_try + 1)
+    db.connections.close_all()
 
 
 def mark_account_rate_limited(account, n_try=0):
@@ -188,6 +199,7 @@ def mark_account_rate_limited(account, n_try=0):
         except Exception:
             sleep(1)
             mark_account_rate_limited(account, n_try=n_try + 1)
+    db.connections.close_all()
 
 
 def release_account(account, n_try=0):
@@ -199,6 +211,7 @@ def release_account(account, n_try=0):
         except Exception:
             sleep(1)
             release_account(account, n_try=n_try + 1)
+    db.connections.close_all()
 
 
 def create_proxy(proxy: str, period: int):
@@ -219,11 +232,14 @@ def create_proxy(proxy: str, period: int):
                                           load_date=timezone.now(),
                                           expiration_date=timezone.now() + timezone.timedelta(days=period))
                         proxy_obj.save()
+                        db.connections.close_all()
                         return proxy_obj
                     else:
+                        db.connections.close_all()
                         return existed_proxy
                 except Exception:
                     sleep(1)
+                    db.connections.close_all()
                     return create_proxy(proxy, period)
 
 
@@ -232,10 +248,13 @@ def del_expired_proxy():
         proxies = Proxy.objects.filter(expiration_date__lt=timezone.now())
         if proxies:
             proxies.delete()
+            db.connections.close_all()
             return {'response': 'proxies was deleted'}
         else:
+            db.connections.close_all()
             return {'response': 'expired proxies are not found'}
     except Exception:
         sleep(1)
+        db.connections.close_all()
         del_expired_proxy()
 

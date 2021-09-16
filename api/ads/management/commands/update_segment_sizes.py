@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.ads.models import Campaign, Ad
 from vk.ads.ads import VkAds
@@ -24,6 +25,7 @@ def update_segments(campaign_id):
         print(f'no campaign with id {campaign_id}')
     else:
         update_campaign_segment_sizes(campaign)
+    db.connections.close_all()
 
 
 def update_campaign_segment_sizes(campaign):
@@ -58,3 +60,5 @@ def update_campaign_segment_sizes(campaign):
     if campaign_audience_count:
         campaign.audience_count = campaign_audience_count
         campaign.save()
+
+    db.connections.close_all()

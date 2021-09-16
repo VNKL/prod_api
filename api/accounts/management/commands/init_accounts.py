@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django import db
 
 from api.accounts.models import Account
 
@@ -19,6 +20,7 @@ class Command(BaseCommand):
 
         if new_accs:
             Account.objects.bulk_create(new_accs, batch_size=40)
+            db.connections.close_all()
 
 
 def open_csv():

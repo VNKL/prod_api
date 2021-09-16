@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django import db
 
 from .models import Campaign, Ad, Playlist, Audio, Automate
 from vk.ads.ads import VkAds
@@ -8,15 +9,18 @@ from ..users.models import User
 def create_campaign(user, data):
     campaign = Campaign(owner=user, **data)
     campaign.save()
+    db.connections.close_all()
     return {'campaign_id': campaign.pk}
 
 
 def delete_campaign(user, data):
     campaign = Campaign.objects.filter(owner=user, campaign_id=data['id']).first()
     if not campaign:
+        db.connections.close_all()
         return {'error': f'not found or no permissions to campaign with id {data["id"]}'}
 
     campaign.delete()
+    db.connections.close_all()
     return {'response': f"campaign with id {data['id']} was deleted"}
 
 
@@ -28,14 +32,17 @@ def create_automate(user, data):
         if data['start'] == 1:
             automate.status = 2
         automate.save()
+        db.connections.close_all()
         return {'automate_id': automate.pk}
     else:
+        db.connections.close_all()
         return {'error': f'Campaign with id {data["campaign_id"]} not found in user campaigns'}
 
 
 def stop_automate(user, data):
     automate = Automate.objects.filter(campaign__owner=user, pk=data['id']).first()
     if not automate:
+        db.connections.close_all()
         return {'error': f'not found or no permissions to automate with id {data["id"]}'}
 
     automate.status = 0
@@ -47,11 +54,13 @@ def stop_automate(user, data):
         campaign.is_automate = False
         campaign.save()
 
+    db.connections.close_all()
     return {'response': f"stopping automate with id {data['id']}"}
 
 
 def get_cabs_and_groups(username):
     user = User.objects.filter(username=username).first()
+    db.connections.close_all()
     if user:
         vk = VkAds(user.ads_token)
         cabs, groups = vk.get_cabs_and_groups()
@@ -64,6 +73,7 @@ def get_cabs_and_groups(username):
 
 def get_retarget(username, cabinet_data):
     user = User.objects.filter(username=username).first()
+    db.connections.close_all()
     if user:
         cabinet = {'account_id': cabinet_data['cabinet_id'],
                    'client_id': cabinet_data['client_id'] if 'client_id' in cabinet_data.keys() else None}
@@ -109,6 +119,7 @@ def update_campaign_stats(campaign):
 
     _process_campaign_stat(camp_listens, camp_reach, camp_saves, camp_spent, camp_clicks, camp_joins, campaign)
 
+    db.connections.close_all()
     return campaign, money_limit
 
 
@@ -205,6 +216,7 @@ def _process_ad(ad, ads_stat, all_audio_stat, camp_spent, camp_reach, camp_liste
 
     _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joins, ad_listens, ad_saves)
     updated_ads.append(ad)
+    db.connections.close_all()
 
 
 def _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joins, ad_listens, ad_saves):
@@ -266,6 +278,7 @@ def _get_posts_ids_for_get_audios_from_post(ads, ads_stat):
         post_audios = [x for x in audios if not x.in_playlist and not x.audio_id] if audios else None
         if post_audios and ads_stat[ad.ad_id]['approved'] == 2 and ad.approved == 1:
             post_ids.append(f'-{ad.post_owner}_{ad.post_id}')
+    db.connections.close_all()
     return post_ids
 
 
@@ -282,6 +295,7 @@ def match_ads_and_audios(ads, posts):
                     matched_audio_objs.append(audio_obj)
 
     Audio.objects.bulk_update(matched_audio_objs, fields=['owner_id', 'audio_id'], batch_size=40)
+    db.connections.close_all()
 
 
 def _get_campaign_audios(ads):
@@ -291,4 +305,5 @@ def _get_campaign_audios(ads):
         if audios:
             refact_audios = [{'owner_id': x.owner_id, 'id': x.audio_id} for x in audios if x.owner_id and x.audio_id]
             all_audios.extend(refact_audios)
+    db.connections.close_all()
     return all_audios

@@ -32,11 +32,14 @@ def start_parser(parser_id):
     else:
         try:
             _start_parsing(parser)
+            db.connections.close_all()
         except Exception as exc:
+            db.connections.close_all()
             parser.status = 0
             parser.error = str(exc)
             parser.finish_date = timezone.now()
             parser.save()
+            db.connections.close_all()
 
 
 def _get_parsing_result(function, params, parser):
@@ -56,7 +59,9 @@ def _get_parsing_result(function, params, parser):
             parser = Parser.objects.filter(pk=parser.pk).first()
             if not parser or parser.status in [0, 2, 4]:
                 process.kill()
+                db.connections.close_all()
                 return None, 'parser was stopped or removed'
+            db.connections.close_all()
             sleep(uniform(3, 5))
 
         if result_dict and 'result' in result_dict.keys() and 'error' in result_dict.keys():
@@ -127,11 +132,13 @@ def _start_parsing(parser):
     if parser:
         if result:
             save_parsing_result(parser=parser, result=result)
+            db.connections.close_all()
         else:
             parser.status = 4 if error == 'parser was stopped or removed' else 0
             parser.error = vk.errors if vk.errors else error
             parser.finish_date = timezone.now()
             parser.save()
+            db.connections.close_all()
 
 
 def _wait_queue(parser):
@@ -152,6 +159,8 @@ def _wait_queue(parser):
     if parser:
         parser.status = 1
         parser.save()
+        db.connections.close_all()
         return parser
     else:
+        db.connections.close_all()
         return False
