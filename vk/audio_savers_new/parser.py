@@ -5,7 +5,7 @@ from time import sleep
 from random import uniform
 
 from api.accounts.utils import load_remixsid, release_account
-from .utils import get_offset_batches, calculate_n_threads
+from .utils import get_offset_batches, calculate_n_threads, calculate_n_threads_for_savers_count, slice_to_batches
 
 
 def get_savers_list_multiprocess(audio_id, max_offset, n_threads=8):
@@ -76,6 +76,53 @@ def get_savers_list_one_process(audio_id, offset_min, offset_max, result_list, f
     finished_list[n_process] = 1
 
 
+def get_savers_count_multiprocess(audio_ids):
+    n_threads = calculate_n_threads_for_savers_count(audio_ids=audio_ids)
+    if n_threads == 1:
+        vk = AudioSaversNew()
+        return vk.get_savers_count_one_thread(audio_ids=audio_ids)
+
+    audios_batches = slice_to_batches(array=audio_ids, n_threads=n_threads)
+
+    result_list = Manager().list()
+    finished_list = Manager().list()
+    for x in range(n_threads):
+        finished_list.append(0)
+
+    processes = []
+    for n in range(n_threads):
+        process = Process(target=get_savers_count_one_process,
+                          args=(audios_batches[n], result_list, finished_list, n))
+        process.start()
+        processes.append(process)
+        sleep(uniform(0.5, 1))
+
+    parsing_in_process = True
+    while parsing_in_process:
+        if all(finished_list):
+            parsing_in_process = False
+        for n, status in enumerate(finished_list):
+            if status:
+                processes[n].kill()
+        sleep(uniform(0.5, 1))
+
+    for process in processes:
+        process.kill()
+
+    savers_count = {}
+    for x in result_list:
+        savers_count.update(x)
+
+    return savers_count
+
+
+def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
+    vk = AudioSaversNew()
+    savers_count = vk.get_savers_count_one_thread(audio_ids=audio_ids)
+    result_list.append(savers_count)
+    finish_list[n_thread] = 1
+
+
 class AudioSaversNew:
 
     def __init__(self):
@@ -140,7 +187,7 @@ class AudioSaversNew:
 
         return int(max_offset) + len(users_hrefs)
 
-    def get_savers_count(self, audio_ids):
+    def get_savers_count_one_thread(self, audio_ids):
         if not self.remixsid:
             return None
 
@@ -157,6 +204,10 @@ class AudioSaversNew:
             savers_count[audio_ids] = sc
 
         return savers_count
+
+    @staticmethod
+    def get_savers_count(audio_ids):
+        return get_savers_count_multiprocess(audio_ids)
 
     def get_savers_list(self, audio_id):
         page = self._get_savers_page(audio_id=audio_id)

@@ -32,6 +32,8 @@ class Proxy(models.Model):
 class ParsingThreadCount(models.Model):
     max_threads = models.IntegerField(default=64)
     offset_param = models.IntegerField(default=6400)
+    savers_count_max_threads = models.IntegerField(default=8)
+    savers_count_division_param = models.IntegerField(default=25)
 
     def __str__(self):
         return f'Current parsing max threads count: {self.max_threads}, offset param: {self.offset_param}'

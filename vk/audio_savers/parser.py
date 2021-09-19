@@ -11,7 +11,7 @@ from vk.wall_grabbing.parser import WallParser
 from vk.engine import VkEngine
 from vk.audio_savers_new.parser import AudioSaversNew
 from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, code_for_get_users, \
-    unpack_execute_get_users, slice_audios_to_id_offset_pairs, calculate_n_threads_new, slice_pairs_to_batches, \
+    unpack_execute_get_users, slice_audios_to_id_offset_pairs, calculate_n_threads_new, slice_to_batches, \
     result_list_to_dict
 
 
@@ -56,7 +56,7 @@ def get_audio_savers_multiprocess_new(audios):
     audios = clean_up_garbage_audios(audios=audios)
     pairs, audio_ids = slice_audios_to_id_offset_pairs(audios=audios)
     n_threads = calculate_n_threads_new(pairs=pairs)
-    pairs_batches = slice_pairs_to_batches(pairs=pairs, n_threads=n_threads)
+    pairs_batches = slice_to_batches(array=pairs, n_threads=n_threads)
 
     result_list = Manager().list()
     finished_list = Manager().list()

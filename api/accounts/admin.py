@@ -15,4 +15,4 @@ class ProxyAdmin(admin.ModelAdmin):
 
 @admin.register(ParsingThreadCount)
 class ParsingThreadCountAdmin(admin.ModelAdmin):
-    list_display = 'max_threads', 'offset_param'
+    list_display = 'max_threads', 'offset_param', 'savers_count_max_threads', 'savers_count_division_param'
