@@ -1,6 +1,9 @@
 """ Use Python 3.7 """
 
 from datetime import date, timedelta
+from multiprocessing import Process, Manager
+from time import sleep
+from random import uniform
 
 from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS
 from vk.audio_savers import utils
@@ -8,7 +11,8 @@ from vk.wall_grabbing.parser import WallParser
 from vk.engine import VkEngine
 from vk.audio_savers_new.parser import AudioSaversNew
 from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, code_for_get_users, \
-    unpack_execute_get_users
+    unpack_execute_get_users, slice_audios_to_id_offset_pairs, calculate_n_threads_new, slice_pairs_to_batches, \
+    result_list_to_dict
 
 
 def get_audio_savers_multiprocess(audios):
@@ -46,6 +50,79 @@ def clean_up_garbage_audios(audios):
     cleaned_audios.sort(key=lambda x: x['savers_count'], reverse=True)
 
     return cleaned_audios
+
+
+def get_audio_savers_multiprocess_new(audios):
+    audios = clean_up_garbage_audios(audios=audios)
+    pairs, audio_ids = slice_audios_to_id_offset_pairs(audios=audios)
+    n_threads = calculate_n_threads_new(pairs=pairs)
+    pairs_batches = slice_pairs_to_batches(pairs=pairs, n_threads=n_threads)
+
+    result_list = Manager().list()
+    finished_list = Manager().list()
+    for x in range(n_threads):
+        finished_list.append(0)
+
+    processes = []
+    for n in range(n_threads):
+        process = Process(target=get_savers_list_one_process_new,
+                          args=(pairs_batches[n], result_list, finished_list, n))
+        process.start()
+        processes.append(process)
+        sleep(uniform(0.5, 1))
+
+    parsing_in_process = True
+    while parsing_in_process:
+        if all(finished_list):
+            parsing_in_process = False
+        for n, status in enumerate(finished_list):
+            if status:
+                processes[n].kill()
+        sleep(uniform(0.5, 1))
+
+    for process in processes:
+        process.kill()
+
+    result_dict = result_list_to_dict(result_list=list(result_list))
+    audios_with_savers_list = []
+    for audio in audios:
+        audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
+        audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=result_dict[audio_id])
+        audios_with_savers_list.append(audio_with_savers)
+
+    return audios_with_savers_list
+
+
+def get_savers_list_one_process_new(pairs, result_list, finished_list, n_thread):
+    vk = AudioSaversNew()
+    audio_savers = {}
+    all_domains = []
+    len_pairs = len(pairs)
+    for n, pair in enumerate(pairs):
+        audio_id = pair['audio_id']
+        savers = vk.pars_savers_one_page(audio_id=pair['audio_id'], offset=pair['offset'])
+        if audio_id in audio_savers.keys():
+            audio_savers[audio_id].extend(savers)
+        else:
+            audio_savers[audio_id] = savers
+        all_domains.extend(savers)
+        print(f'Process {n_thread + 1} \t | \t Parsed: {n + 1} / {len_pairs}')
+
+    print(f'------ Process {n_thread + 1} finished parsing savers ------')
+    print(f'------ Process {n_thread + 1} start converting domains to ids ------')
+
+    domains_unique = list(set(all_domains))
+    vk = AudioSaversParser()
+    domains_ids = vk.get_user_ids_from_domains(domains=domains_unique)
+
+    print(f'------ Process {n_thread + 1} finished converting domains to ids ------')
+
+    for audio_id, domains in audio_savers.items():
+        savers_ids = [domains_ids[x] for x in domains if x in domains_ids.keys()]
+        print(len(domains), len(savers_ids))
+        result_list.append({audio_id: savers_ids})
+
+    finished_list[n_thread] = 1
 
 
 class AudioSaversParser(VkEngine):
@@ -281,7 +358,7 @@ class AudioSaversParser(VkEngine):
             if count_only:
                 return audios
             if n_threads:
-                return get_audio_savers_multiprocess(audios)
+                return get_audio_savers_multiprocess_new(audios)
             else:
                 return self.iter_get_audios_savers(audios)
         else:

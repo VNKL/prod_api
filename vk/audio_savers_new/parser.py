@@ -188,3 +188,12 @@ class AudioSaversNew:
         print(f'Process: {n_thread}   |   Parsing is finished')
 
         return users
+
+    def pars_savers_one_page(self, audio_id, offset):
+        try:
+            page = self._get_savers_page(audio_id=audio_id, offset=offset)
+            users, _ = self._get_users_from_page(page=page, audio_id=audio_id)
+            return users
+        except Exception as err_msg:
+            print('!!! pars_savers_one_page error:', err_msg)
+            return []

@@ -102,3 +102,65 @@ def calculate_n_threads(max_offset):
         return 1
     else:
         return max_threads
+
+
+def calculate_n_threads_new(pairs):
+    try:
+        db.connections.close_all()
+        threads_obj = ParsingThreadCount.objects.filter().first()
+        max_threads = threads_obj.max_threads
+        offset_param = threads_obj.offset_param
+        db.connections.close_all()
+    except Exception as err_msg:
+        print('!!! error in calculate_n_threads', err_msg)
+        max_threads = 64
+        offset_param = 6400
+
+    x = round(len(pairs) / (offset_param / 50))
+    if 1 <= x <= max_threads:
+        return x
+    elif x < 1:
+        return 1
+    else:
+        return max_threads
+
+
+def slice_audios_to_id_offset_pairs(audios):
+    id_offset_pairs = []
+    audio_ids = []
+    for audio in audios:
+        audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
+        audio_ids.append(audio_id)
+        savers_count = audio['savers_count']
+        for offset in range(0, savers_count, 50):
+            id_offset_pairs.append({'audio_id': audio_id, 'offset': offset})
+
+    return id_offset_pairs, audio_ids
+
+
+def slice_pairs_to_batches(pairs, n_threads):
+    batches = []
+    len_pairs = len(pairs)
+    d = round(len_pairs / n_threads)
+    for n, x in enumerate(range(0, len_pairs, d)):
+        if n + 1 == n_threads:
+            y = None
+            batches.append(pairs[x:y])
+            break
+        else:
+            y = x + d if x + d <= len_pairs else None
+            batches.append(pairs[x:y])
+
+    return batches
+
+
+def result_list_to_dict(result_list):
+    result_dict = {}
+    for pack in result_list:
+        audio_id = list(pack.keys())[0]
+        if audio_id in result_dict.keys():
+            result_dict[audio_id].extend(pack[audio_id])
+        else:
+            result_dict[audio_id] = pack[audio_id]
+
+    return result_dict
