@@ -134,6 +134,7 @@ class AudioSaversNew:
         self.account = account
         self.request_url = 'https://m.vk.com/like'
         self.session = requests.Session()
+        self.session.headers.update({'User-Agent': 'Mozilla/5.0'})
         self.session.mount('https://m.vk.com', HTTPAdapter(max_retries=retries))
         self.session.cookies.set(name='remixsid', value=self.remixsid)
 
