@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Account, Proxy, ParsingThreadCount, UserAgent
+from .models import Account, Proxy, ParsingThreadCount
 
 
 @admin.register(Account)
@@ -16,8 +16,3 @@ class ProxyAdmin(admin.ModelAdmin):
 @admin.register(ParsingThreadCount)
 class ParsingThreadCountAdmin(admin.ModelAdmin):
     list_display = 'max_threads', 'offset_param', 'savers_count_max_threads', 'savers_count_division_param'
-
-
-@admin.register(UserAgent)
-class UserAgentAdmin(admin.ModelAdmin):
-    list_display = ['user_agent']

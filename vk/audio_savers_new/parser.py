@@ -4,7 +4,7 @@ from multiprocessing import Process, Manager
 from time import sleep
 from random import uniform
 
-from api.accounts.utils import load_remixsid, release_account, load_user_agent, load_proxy, release_proxy
+from api.accounts.utils import load_remixsid, release_account
 from .utils import get_offset_batches, calculate_n_threads, calculate_n_threads_for_savers_count, slice_to_batches
 
 
@@ -129,29 +129,19 @@ class AudioSaversNew:
         remixsid, account = load_remixsid()
         self.remixsid = remixsid
         self.account = account
-        self.user_agent = load_user_agent()
-        self.proxy = load_proxy()
-        self.proxy_dict = {'http': f'http://{self.proxy}'} if self.proxy else None
-        if self.proxy_dict:
-            print('!!!!!!!!!!!! WITH PROXY !!!!!!!!!!!!!')
+        self.session = requests.Session()
+        self.session.cookies.set(name='remixsid', value=self.remixsid)
 
     def __del__(self):
         try:
             release_account(self.account)
-            release_proxy(self.proxy)
         except AttributeError:
             pass
 
     def _get_savers_page(self, audio_id, offset=0):
         request_url = 'https://m.vk.com/like'
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
-        headers = {'User-Agent': self.user_agent, 'Connection': 'close'}
-        cookies = {'remixsid': self.remixsid}
-        with requests.post(request_url,
-                           params=request_data,
-                           cookies=cookies,
-                           headers=headers,
-                           proxies=self.proxy_dict) as resp:
+        with self.session.post(request_url, params=request_data) as resp:
             return resp.text
 
     @staticmethod
