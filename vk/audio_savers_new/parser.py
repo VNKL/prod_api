@@ -147,11 +147,12 @@ class AudioSaversNew:
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
         headers = {'User-Agent': self.user_agent, 'Connection': 'close'}
         cookies = {'remixsid': self.remixsid}
-        resp = requests.post(request_url, params=request_data,
-                             cookies=cookies, headers=headers, proxies=self.proxy_dict)
-        page = resp.text
-        resp.close()
-        return page
+        with requests.post(request_url,
+                           params=request_data,
+                           cookies=cookies,
+                           headers=headers,
+                           proxies=self.proxy_dict) as resp:
+            return resp.text
 
     @staticmethod
     def _get_users_from_page(page, audio_id):
