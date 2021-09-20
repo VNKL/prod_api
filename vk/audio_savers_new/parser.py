@@ -128,7 +128,7 @@ def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
 class AudioSaversNew:
 
     def __init__(self):
-        retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+        retries = Retry(total=10, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
         remixsid, account = load_remixsid()
         self.remixsid = remixsid
         self.account = account
