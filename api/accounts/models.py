@@ -1,4 +1,5 @@
 from django.db import models
+from api.settings import DEFAULT_USER_AGENT
 
 
 class Account(models.Model):
@@ -37,3 +38,7 @@ class ParsingThreadCount(models.Model):
 
     def __str__(self):
         return f'Current parsing max threads count: {self.max_threads}, offset param: {self.offset_param}'
+
+
+class UserAgent(models.Model):
+    user_agent = models.CharField(default=DEFAULT_USER_AGENT, max_length=200)

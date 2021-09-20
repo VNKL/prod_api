@@ -6,7 +6,8 @@ from django import db
 from time import sleep
 from random import uniform
 
-from .models import Account, Proxy
+from .models import Account, Proxy, UserAgent
+from api.settings import DEFAULT_USER_AGENT
 from vk.audio_savers_new.utils import captcha_handler
 
 
@@ -128,6 +129,20 @@ def load_proxy():
     #             return load_proxy()
     # else:
     #     return None
+
+
+def load_user_agent(n_try=0):
+    if n_try < 5:
+        try:
+            ua = UserAgent.objects.filter().first()
+            if ua:
+                return ua.user_agent
+            else:
+                return load_user_agent(n_try=n_try+1)
+        except Exception:
+            return load_user_agent(n_try=n_try+1)
+    else:
+        return DEFAULT_USER_AGENT
 
 
 def release_proxy(proxy_str):
