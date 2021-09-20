@@ -146,8 +146,15 @@ class AudioSaversNew:
 
     def _get_savers_page(self, audio_id, offset=0):
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
-        with self.session.post(self.request_url, params=request_data) as resp:
-            return resp.text
+        while True:
+            n_try = 0
+            try:
+                with self.session.post(self.request_url, params=request_data) as resp:
+                    return resp.text
+            except Exception:
+                print('Except _get_savers_page, n_try = ', n_try)
+                n_try += 1
+                sleep(uniform(0.1, 0.5))
 
     @staticmethod
     def _get_users_from_page(page, audio_id):
