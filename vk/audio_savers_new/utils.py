@@ -171,7 +171,7 @@ def calculate_n_threads_for_savers_count(audio_ids):
         db.connections.close_all()
         threads_obj = ParsingThreadCount.objects.filter().first()
         max_threads = threads_obj.savers_count_max_threads
-        division_param = threads_obj.savers_count_param
+        division_param = threads_obj.savers_count_division_param
         db.connections.close_all()
     except Exception as err_msg:
         print('!!! error in calculate_n_threads_for_savers_count:', err_msg)
