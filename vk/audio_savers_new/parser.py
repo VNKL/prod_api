@@ -145,9 +145,9 @@ class AudioSaversNew:
             pass
 
     def _get_savers_page(self, audio_id, offset=0):
+        n_try = 0
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
         while True:
-            n_try = 0
             try:
                 with self.session.post(self.request_url, params=request_data) as resp:
                     return resp.text
