@@ -1,4 +1,6 @@
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from bs4 import BeautifulSoup
 from multiprocessing import Process, Manager
 from time import sleep
@@ -126,10 +128,13 @@ def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
 class AudioSaversNew:
 
     def __init__(self):
+        retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
         remixsid, account = load_remixsid()
         self.remixsid = remixsid
         self.account = account
+        self.request_url = 'https://m.vk.com/like'
         self.session = requests.Session()
+        self.session.mount('https://m.vk.com', HTTPAdapter(max_retries=retries))
         self.session.cookies.set(name='remixsid', value=self.remixsid)
 
     def __del__(self):
@@ -139,9 +144,8 @@ class AudioSaversNew:
             pass
 
     def _get_savers_page(self, audio_id, offset=0):
-        request_url = 'https://m.vk.com/like'
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
-        with self.session.post(request_url, params=request_data) as resp:
+        with self.session.post(self.request_url, params=request_data) as resp:
             return resp.text
 
     @staticmethod
