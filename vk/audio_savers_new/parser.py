@@ -145,10 +145,12 @@ class AudioSaversNew:
     def _get_savers_page(self, audio_id, offset=0):
         request_url = 'https://m.vk.com/like'
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
-        headers = {'User-Agent': self.user_agent}
+        headers = {'User-Agent': self.user_agent, 'Connection': 'close'}
         cookies = {'remixsid': self.remixsid}
-        page = requests.post(request_url, params=request_data,
-                             cookies=cookies, headers=headers, proxies=self.proxy_dict).text
+        resp = requests.post(request_url, params=request_data,
+                             cookies=cookies, headers=headers, proxies=self.proxy_dict)
+        page = resp.text
+        resp.close()
         return page
 
     @staticmethod

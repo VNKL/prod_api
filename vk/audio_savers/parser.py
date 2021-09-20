@@ -101,12 +101,15 @@ def get_savers_list_one_process_new(pairs, result_list, finished_list, n_thread)
     for n, pair in enumerate(pairs):
         audio_id = pair['audio_id']
         savers = vk.pars_savers_one_page(audio_id=pair['audio_id'], offset=pair['offset'])
-        if audio_id in audio_savers.keys():
-            audio_savers[audio_id].extend(savers)
+        if savers:
+            if audio_id in audio_savers.keys():
+                audio_savers[audio_id].extend(savers)
+            else:
+                audio_savers[audio_id] = savers
+            all_domains.extend(savers)
+            print(f'Process {n_thread + 1} \t | \t Parsed: {n + 1} / {len_pairs}')
         else:
-            audio_savers[audio_id] = savers
-        all_domains.extend(savers)
-        print(f'Process {n_thread + 1} \t | \t Parsed: {n + 1} / {len_pairs}')
+            print(f'Process {n_thread + 1} \t | \t Parsing error: {n + 1} / {len_pairs}')
 
     print(f'------ Process {n_thread + 1} finished parsing savers ------')
     print(f'------ Process {n_thread + 1} start converting domains to ids ------')
