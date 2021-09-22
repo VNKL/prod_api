@@ -195,7 +195,15 @@ class AudioSaversNew:
             page = self._get_savers_page(audio_id=audio_id, offset=max_offset)
             soup = BeautifulSoup(page, 'lxml')
             a_hrefs = [x['href'] for x in soup.find_all('a')]
-            slice_start, slice_end = a_hrefs.index('/menu'), a_hrefs.index(pagination)
+            if '/menu' in a_hrefs:
+                slice_start = a_hrefs.index('/menu')
+            elif '/join' in a_hrefs:
+                slice_start = a_hrefs.index('/join')
+            elif len(a_hrefs) > 1:
+                slice_start = 1
+            else:
+                slice_start = 0
+            slice_end = a_hrefs.index(pagination) if pagination in a_hrefs else None
 
         users_hrefs = a_hrefs[slice_start + 1: slice_end]
 
