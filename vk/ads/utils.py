@@ -230,11 +230,21 @@ def get_group_id_from_url(group_str):
 
 def data_for_create_ads(ad_name, campaign_id, post_url, sex=None, music=False, boom=None,
                         musician_formula=None, groups_formula=None, retarget_id=None,
-                        age_from=0, age_to=0, age_disclaimer='0+'):
+                        age_from=0, age_to=0, age_disclaimer='0+', retarget_exclude_id=None,
+                        retarget_save_seen_id=None, retarget_save_positive_id=None, retarget_save_negative_id=None):
     # Перевод параметров функции в параметры для настроек
     sex = _sex_str_to_int(sex)
     age_disclaimer = age_disclaimer if isinstance(age_disclaimer, int) else _age_disclaimer_str_to_int(age_disclaimer)
     age_from = _age_from_by_int_age_disclaimer(age_disclaimer, age_from)
+
+    # Сохранение событий в ретаргет
+    retarget_save = {}
+    if retarget_save_seen_id:
+        retarget_save[retarget_save_seen_id] = [1]
+    if retarget_save_positive_id:
+        retarget_save[retarget_save_positive_id] = [2, 3, 4, 20, 21]
+    if retarget_save_negative_id:
+        retarget_save[retarget_save_negative_id] = [5, 6]
 
     data_dict = {
         'campaign_id': campaign_id,                 # Айди кампании
@@ -268,6 +278,10 @@ def data_for_create_ads(ad_name, campaign_id, post_url, sex=None, music=False, b
         data_dict.update({'apps': 4705861})
     if 'Пустой сегмент' in ad_name:
         data_dict.update({'status': 0})
+    if retarget_exclude_id:
+        data_dict.update({'retargeting_groups_not': retarget_exclude_id})
+    if retarget_save:
+        data_dict.update({'events_retargeting_groups': retarget_save})
 
     return json.dumps([data_dict])
 

@@ -66,10 +66,7 @@ def _start_campaign(campaign):
     if fake_group_id:
         campaign.fake_group_id = fake_group_id
         campaign.save()
-        ads.extend(_create_ads_for_groups(reference, vk, campaign))
-        ads.extend(_create_ads_for_retarget(reference, vk, campaign))
-        ads.extend(_create_ads_for_musicians(reference, vk, campaign))
-        ads.extend(_create_empty_ads(reference, vk, campaign))
+        ads.extend(_create_ads(campaign, reference, vk))
 
     if not ads:
         errors.append('No ads for received campaign settings')
@@ -169,7 +166,57 @@ def _create_fake_group(vk, campaign, errors):
         errors.append(f'Error with create fake group with name "{campaign.artist}"')
 
 
-def _create_ads_for_musicians(reference_orig, vk, campaign):
+def _create_ads(campaign, reference, vk):
+    ads = []
+    save_retarget_dict = _get_save_retarget_ids(campaign, vk)
+    ads.extend(_create_ads_for_groups(reference, vk, campaign, save_retarget_dict))
+    ads.extend(_create_ads_for_retarget(reference, vk, campaign, save_retarget_dict))
+    ads.extend(_create_ads_for_musicians(reference, vk, campaign, save_retarget_dict))
+    ads.extend(_create_empty_ads(reference, vk, campaign, save_retarget_dict))
+    return ads
+
+
+def _get_save_retarget_ids(campaign, vk):
+    exclude = campaign.retarget_exclude
+    save_seen_id = campaign.retarget_save_seen
+    save_positive_id = campaign.retarget_save_positive
+    save_negative_id = campaign.retarget_save_negative
+
+    if exclude or save_seen_id or save_positive_id or save_negative_id:
+        cab_retarget = vk.get_retarget({'account_id': campaign.cabinet_id, 'client_id': campaign.client_id})
+        cab_retarget = {x['name']: x['id'] for x in cab_retarget}
+
+        if exclude:
+            if '\n' in exclude:
+                exclude_list = exclude.split('\n')
+            else:
+                exclude_list = [exclude]
+            exclude_ids_list = [str(v) for k, v in cab_retarget.items() if k in exclude_list]
+            if exclude_ids_list:
+                exclude = ','.join(exclude_ids_list)
+            else:
+                exclude = None
+
+        if save_seen_id:
+            save_seen_id = cab_retarget[save_seen_id] if save_seen_id in cab_retarget.keys() else None
+
+        if save_positive_id:
+            save_positive_id = cab_retarget[save_positive_id] if save_positive_id in cab_retarget.keys() else None
+
+        if save_negative_id:
+            save_negative_id = cab_retarget[save_negative_id] if save_negative_id in cab_retarget.keys() else None
+
+        return {
+            'exclude': exclude,
+            'save_seen_id': save_seen_id,
+            'save_positive_id': save_positive_id,
+            'save_negative_id': save_negative_id
+        }
+
+    return {'exclude': None, 'save_seen_id': None, 'save_positive_id': None, 'save_negative_id': None}
+
+
+def _create_ads_for_musicians(reference_orig, vk, campaign, save_retarget_dict):
     ads = []
     musicians = _get_musicians(campaign)
     for musician in musicians:
@@ -184,7 +231,11 @@ def _create_ads_for_musicians(reference_orig, vk, campaign):
                                          ad_name=ad_name, post_url=post_replica['post_url'],
                                          sex=campaign.sex, music=campaign.music, boom=campaign.boom,
                                          age_from=campaign.age_from, age_to=campaign.age_to,
-                                         age_disclaimer=campaign.age_disclaimer, musician_formula=formula)
+                                         age_disclaimer=campaign.age_disclaimer, musician_formula=formula,
+                                         retarget_exclude_id=save_retarget_dict['exclude'],
+                                         retarget_save_seen_id=save_retarget_dict['save_seen_id'],
+                                         retarget_save_positive_id=save_retarget_dict['save_positive_id'],
+                                         retarget_save_negative_id=save_retarget_dict['save_negative_id'])
                     if ad_id:
                         sleep(uniform(1, 4))
                         audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
@@ -197,7 +248,7 @@ def _create_ads_for_musicians(reference_orig, vk, campaign):
     return ads
 
 
-def _create_ads_for_groups(reference_orig, vk, campaign):
+def _create_ads_for_groups(reference_orig, vk, campaign, save_retarget_dict):
     ads = []
     groups = _get_groups(campaign)
     for group in groups:
@@ -212,7 +263,11 @@ def _create_ads_for_groups(reference_orig, vk, campaign):
                                          ad_name=ad_name, post_url=post_replica['post_url'],
                                          sex=campaign.sex, music=campaign.music, boom=campaign.boom,
                                          age_from=campaign.age_from, age_to=campaign.age_to,
-                                         age_disclaimer=campaign.age_disclaimer, groups_formula=formula)
+                                         age_disclaimer=campaign.age_disclaimer, groups_formula=formula,
+                                         retarget_exclude_id=save_retarget_dict['exclude'],
+                                         retarget_save_seen_id=save_retarget_dict['save_seen_id'],
+                                         retarget_save_positive_id=save_retarget_dict['save_positive_id'],
+                                         retarget_save_negative_id=save_retarget_dict['save_negative_id'])
                     if ad_id:
                         sleep(uniform(1, 4))
                         audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
@@ -225,7 +280,7 @@ def _create_ads_for_groups(reference_orig, vk, campaign):
     return ads
 
 
-def _create_ads_for_retarget(reference_orig, vk, campaign):
+def _create_ads_for_retarget(reference_orig, vk, campaign, save_retarget_dict):
     ads = []
     retarget_names, cab_retarget = _get_retarget_names(vk, campaign)
     if not cab_retarget:
@@ -243,7 +298,11 @@ def _create_ads_for_retarget(reference_orig, vk, campaign):
                                          ad_name=ad_name, post_url=post_replica['post_url'],
                                          sex=campaign.sex, music=campaign.music, boom=campaign.boom,
                                          age_from=campaign.age_from, age_to=campaign.age_to,
-                                         age_disclaimer=campaign.age_disclaimer, retarget_id=retarget['id'])
+                                         age_disclaimer=campaign.age_disclaimer, retarget_id=retarget['id'],
+                                         retarget_exclude_id=save_retarget_dict['exclude'],
+                                         retarget_save_seen_id=save_retarget_dict['save_seen_id'],
+                                         retarget_save_positive_id=save_retarget_dict['save_positive_id'],
+                                         retarget_save_negative_id=save_retarget_dict['save_negative_id'])
                     if ad_id:
                         sleep(uniform(1, 4))
                         audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,
@@ -256,7 +315,7 @@ def _create_ads_for_retarget(reference_orig, vk, campaign):
     return ads
 
 
-def _create_empty_ads(reference_orig, vk, campaign):
+def _create_empty_ads(reference_orig, vk, campaign, save_retarget_dict):
     ads = []
     names = [f'Пустой сегмент {i + 1}' for i in range(campaign.empty_ads)]
     for name in names:
@@ -268,7 +327,11 @@ def _create_empty_ads(reference_orig, vk, campaign):
                                      ad_name=name, post_url=post_replica['post_url'],
                                      sex=campaign.sex, music=campaign.music, boom=campaign.boom,
                                      age_from=campaign.age_from, age_to=campaign.age_to,
-                                     age_disclaimer=campaign.age_disclaimer)
+                                     age_disclaimer=campaign.age_disclaimer,
+                                     retarget_exclude_id=save_retarget_dict['exclude'],
+                                     retarget_save_seen_id=save_retarget_dict['save_seen_id'],
+                                     retarget_save_positive_id=save_retarget_dict['save_positive_id'],
+                                     retarget_save_negative_id=save_retarget_dict['save_negative_id'])
                 if ad_id:
                     sleep(uniform(1, 4))
                     audience_count = vk.get_segment_size(cabinet_id=campaign.cabinet_id, client_id=campaign.client_id,

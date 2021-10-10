@@ -74,6 +74,7 @@ class VkAds(VkEngine):
             params = {'access_token': self.ads_token, 'v': 5.96}
 
         resp = self._get_ads_response(url=url, data=params)
+        print(resp)
         if not resp and n_try < 3:
             return self._ads_response(method, params, n_try=n_try + 1)
         else:
@@ -339,11 +340,13 @@ class VkAds(VkEngine):
         return reference
 
     def create_ad(self, cabinet_id, campaign_id, ad_name, post_url, sex=None, music=False, boom=False,
-                  musician_formula=None, groups_formula=None, retarget_id=None,
-                  age_from=0, age_to=0, age_disclaimer='0+'):
+                  musician_formula=None, groups_formula=None, retarget_id=None, age_from=0, age_to=0,
+                  age_disclaimer='0+', retarget_exclude_id=None, retarget_save_seen_id=None,
+                  retarget_save_positive_id=None, retarget_save_negative_id=None):
         data = utils.data_for_create_ads(ad_name, campaign_id, post_url, sex, music, boom,
                                          musician_formula, groups_formula, retarget_id,
-                                         age_from, age_to, age_disclaimer)
+                                         age_from, age_to, age_disclaimer, retarget_exclude_id,
+                                         retarget_save_seen_id, retarget_save_positive_id, retarget_save_negative_id)
         resp = self._ads_response('ads.createAds', {'account_id': cabinet_id, 'data': data})
         if resp:
             return resp[0]['id']

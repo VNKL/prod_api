@@ -79,6 +79,10 @@ class CreateCampaignSerializer(serializers.Serializer):
     related = serializers.BooleanField(default=False)
     retarget = serializers.CharField(required=False)
     empty_ads = serializers.IntegerField(default=0)
+    retarget_exclude = serializers.CharField(required=False)
+    retarget_save_seen = serializers.CharField(required=False)
+    retarget_save_positive = serializers.CharField(required=False)
+    retarget_save_negative = serializers.CharField(required=False)
 
 
 class GetSerializer(serializers.Serializer):

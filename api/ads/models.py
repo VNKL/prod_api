@@ -58,6 +58,10 @@ class Campaign(models.Model):
     has_moderate_audios = models.BooleanField(default=False)
     audios_is_moderated = models.BooleanField(default=False)
     audience_count = models.BigIntegerField(default=0)
+    retarget_exclude = models.TextField(blank=True, default=0)
+    retarget_save_seen = models.TextField(blank=True, default=0)
+    retarget_save_positive = models.TextField(blank=True, default=0)
+    retarget_save_negative = models.TextField(blank=True, default=0)
 
     def __str__(self):
         return f'Campaign "{self.artist} - {self.title}"'
