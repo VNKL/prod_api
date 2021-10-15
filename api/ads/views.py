@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from api.ads.serializers import *
 from api.ads.utils import create_campaign, create_automate, update_campaign_stats, get_cabs_and_groups, get_retarget, \
-    stop_automate, camp_stat_to_filename, camp_stat_to_str, delete_campaign
+    stop_automate, camp_stat_to_filename, camp_stat_to_str, delete_campaign, rename_campaign
 from api.users.models import User
 from api.users.permissions import AdsPermission
 
@@ -52,6 +52,20 @@ class GetCampaignView(views.APIView):
                 campaign = CampaignExtendedSerializer(campaign)
             else:
                 campaign = CampaignSerializer(campaign)
+            return Response(campaign.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RenameCampaignView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, AdsPermission]
+
+    def get(self, request):
+        serializer = RenameCampaignSerializer(data=request.query_params)
+        if serializer.is_valid():
+            user = get_object_or_404(User, username=request.user.username)
+            campaign = get_object_or_404(Campaign, campaign_id=serializer.validated_data['id'], owner=user)
+            campaign = rename_campaign(campaign=campaign, title=serializer.validated_data['title'])
+            campaign = CampaignExtendedSerializer(campaign)
             return Response(campaign.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

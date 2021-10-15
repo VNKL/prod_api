@@ -13,6 +13,15 @@ def create_campaign(user, data):
     return {'campaign_id': campaign.pk}
 
 
+def rename_campaign(campaign, title):
+    campaign.title = title
+    campaign.campaign_name = f'{campaign.artist} - {title}'
+    campaign.save()
+    db.connections.close_all()
+    return campaign
+
+
+
 def delete_campaign(user, data):
     campaign = Campaign.objects.filter(owner=user, campaign_id=data['id']).first()
     if not campaign:

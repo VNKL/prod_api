@@ -90,6 +90,11 @@ class GetSerializer(serializers.Serializer):
     extended = serializers.BooleanField(default=False)
 
 
+class RenameCampaignSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+
+
 class AutomateExtendedSerializer(serializers.ModelSerializer):
     campaign = CampaignExtendedSerializer()
 
