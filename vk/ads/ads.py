@@ -74,7 +74,6 @@ class VkAds(VkEngine):
             params = {'access_token': self.ads_token, 'v': 5.96}
 
         resp = self._get_ads_response(url=url, data=params)
-        print(resp)
         if not resp and n_try < 3:
             return self._ads_response(method, params, n_try=n_try + 1)
         else:
