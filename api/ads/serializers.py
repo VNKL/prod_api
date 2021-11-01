@@ -100,7 +100,8 @@ class AutomateExtendedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Automate
-        fields = 'id', 'status', 'type', 'target_cost', 'start', 'finish', 'create_date', 'finish_date', 'campaign'
+        fields = 'id', 'status', 'type', 'max_cpm', 'target_cost', 'start', 'finish', \
+                 'create_date', 'finish_date', 'campaign'
 
 
 class AutomateSerializer(serializers.ModelSerializer):
@@ -108,7 +109,8 @@ class AutomateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Automate
-        fields = 'id', 'status', 'type', 'target_cost', 'start', 'finish', 'create_date', 'finish_date', 'campaign'
+        fields = 'id', 'status', 'type', 'max_cpm', 'target_cost', 'start', 'finish', \
+                 'create_date', 'finish_date', 'campaign'
 
 
 class CreateAutomateSerializer(serializers.Serializer):
@@ -117,6 +119,7 @@ class CreateAutomateSerializer(serializers.Serializer):
     type = serializers.IntegerField()
     start = serializers.IntegerField(default=0)
     finish = serializers.IntegerField(default=0)
+    max_cpm = serializers.IntegerField(default=120)
 
 
 class StopAutomateSerializer(serializers.Serializer):

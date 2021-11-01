@@ -113,7 +113,8 @@ def _get_finish_time(automate):
 
 
 def _update_ads(campaign, automate, vk):
-    automate_type, target_cost, stop_cost = automate.type, automate.target_cost, automate.target_cost * 1.2
+    target_cost, stop_cost = automate.target_cost, automate.target_cost * 1.2
+    automate_type, max_cpm = automate.type, automate.max_cpm
 
     ads = Ad.objects.filter(campaign=campaign)
 
@@ -128,7 +129,7 @@ def _update_ads(campaign, automate, vk):
             current_cost = ad.cps
 
         _do_ads_update_logic(ad, cpm_list, current_cost, stop_cost, target_cost, to_start, to_stop, to_update_cpm,
-                             updated_ads)
+                             updated_ads, max_cpm)
 
     if to_start:
         vk.update_ads(cabinet_id=campaign.cabinet_id, ad_ids=to_start, start=True)
@@ -146,7 +147,7 @@ def _update_ads(campaign, automate, vk):
 
 
 def _do_ads_update_logic(ad, cpm_list, current_cost, stop_cost, target_cost, to_start, to_stop, to_update_cpm,
-                         updated_ads):
+                         updated_ads, max_cpm):
 
     step = 3.3
 
@@ -176,7 +177,7 @@ def _do_ads_update_logic(ad, cpm_list, current_cost, stop_cost, target_cost, to_
 
     elif current_cost < target_cost:
         to_update_cpm.append(ad.ad_id)
-        cpm = ad.cpm_price + step if ad.cpm_price + step < 120 else 120
+        cpm = ad.cpm_price + step if ad.cpm_price + step < max_cpm else max_cpm
         cpm_list.append(cpm)
         updated_ads.append(ad)
 

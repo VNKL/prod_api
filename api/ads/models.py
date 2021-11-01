@@ -141,6 +141,7 @@ class Automate(models.Model):
     create_date = models.DateTimeField()
     finish_date = models.DateTimeField(blank=True, null=True)
     error = models.TextField(blank=True, null=True)
+    max_cpm = models.IntegerField(default=120)
 
     def __str__(self):
         return f'Automate for {self.campaign}'

@@ -27,4 +27,5 @@ class AudioAdmin(admin.ModelAdmin):
 
 @admin.register(Automate)
 class AutomateAdmin(admin.ModelAdmin):
-    list_display = 'id', 'campaign', 'type', 'status', 'error', 'start', 'finish', 'create_date', 'finish_date'
+    list_display = 'id', 'campaign', 'type', 'max_cpm', 'status', 'error', 'start', 'finish', \
+                   'create_date', 'finish_date'
