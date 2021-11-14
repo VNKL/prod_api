@@ -21,6 +21,12 @@ def bind_vk(code, django_username):
         update_user_object(user_data)
 
 
+def unbind_vk(user):
+    if user:
+        user.has_token = False
+        user.save()
+
+
 def get_ava_url_from_vk(token):
     url = f'https://api.vk.com/method/users.get?fields=photo_200&access_token={token}&v=5.96'
     resp = requests.get(url).json()

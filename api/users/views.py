@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from .serializers import *
 from .models import User
-from .utils import bind_vk
+from .utils import bind_vk, unbind_vk
 
 
 class UserIndexView(views.APIView):
@@ -46,3 +46,13 @@ class UserBindVkView(views.APIView):
             bind_vk(code, username)
 
         return HttpResponseRedirect(redirect_to='http://from-shame-to-fame.ru/')
+
+
+class UserUnbindVkView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+        unbind_vk(user)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)

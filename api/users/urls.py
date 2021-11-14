@@ -11,4 +11,5 @@ urlpatterns = [
     path('.create', UserCreateView.as_view()),
     path('.get', UserGetView.as_view()),                         # extended
     path('.bindVk', UserBindVkView.as_view()),
+    path('.unbindVk', UserUnbindVkView.as_view()),
 ]
