@@ -51,21 +51,20 @@ def load_account(n_try=0):
             return load_account(n_try=n_try + 1)
 
 
-def _get_remixsid_from_vk(login, password, n_try=0):
-    if n_try < 10:
-        vk_session = vk_api.VkApi(login=login, password=password, captcha_handler=captcha_handler)
-        try:
-            vk_session.auth()
-            cookies = vk_session.http.cookies.get_dict()
-            return cookies['remixsid']
-        except vk_api.AuthError as error_msg:
-            print(login, password, error_msg)
-            sleep(uniform(3, 5))
-            return _get_remixsid_from_vk(login, password, n_try=n_try+1)
+def _get_remixsid_from_vk(login, password):
+    vk_session = vk_api.VkApi(login=login, password=password, captcha_handler=captcha_handler)
+    try:
+        vk_session.auth()
+        cookies = vk_session.http.cookies.get_dict()
+        return cookies['remixsid']
+    except vk_api.AuthError as error_msg:
+        print(login, password, error_msg)
+        sleep(uniform(3, 5))
+        return _get_remixsid_from_vk(login, password)
 
 
 def load_remixsid(n_try=0):
-    if n_try < 10:
+    if n_try < 5:
         try:
             db.connections.close_all()
             account = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=False).first()
@@ -226,6 +225,7 @@ def mark_account_rate_limited(account, n_try=0):
 
 
 def release_account(account, n_try=0):
+    db.connections.close_all()
     if n_try < 5:
         try:
             account.is_busy = False
