@@ -225,16 +225,19 @@ def mark_account_rate_limited(account, n_try=0):
 
 
 def release_account(account, n_try=0):
-    db.connections.close_all()
-    if n_try < 5:
-        try:
-            account.is_busy = False
-            account.is_rate_limited = False
-            account.save()
-        except Exception:
-            sleep(1)
-            release_account(account, n_try=n_try + 1)
-    db.connections.close_all()
+    try:
+        db.connections.close_all()
+        if n_try < 5:
+            try:
+                account.is_busy = False
+                account.is_rate_limited = False
+                account.save()
+            except Exception:
+                sleep(1)
+                release_account(account, n_try=n_try + 1)
+        db.connections.close_all()
+    except TypeError:
+        pass
 
 
 def create_proxy(proxy: str, period: int):

@@ -128,48 +128,37 @@ def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
 class AudioSaversNew:
 
     def __init__(self):
-        retries = Retry(total=10, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+        # retries = Retry(total=10, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
         # remixsid, account = load_remixsid()
         # self.remixsid = remixsid
         # self.account = account
-        self.remixsid = None
-        self.account = None
+        # self.remixsid = None
+        # self.account = None
         self.request_url = 'https://m.vk.com/like'
-        self.session = requests.Session()
-        self.session.headers.update({'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 3a) '
-                                                   'AppleWebKit/537.36 (KHTML, like Gecko) '
-                                                   'Chrome/83.0.4103.101 Mobile Safari/537.36'})
-        self.session.mount('https://m.vk.com', HTTPAdapter(max_retries=retries))
-        self.session.cookies.set(name='remixsid', value=self.remixsid)
+        # self.session = requests.Session()
+        # self.session.headers.update({'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 3a) '
+        #                                            'AppleWebKit/537.36 (KHTML, like Gecko) '
+        #                                            'Chrome/83.0.4103.101 Mobile Safari/537.36'})
+        # self.session.mount('https://m.vk.com', HTTPAdapter(max_retries=retries))
+        # self.session.cookies.set(name='remixsid', value=self.remixsid)
 
-    def __del__(self):
-        try:
-            release_account(self.account)
-        except AttributeError:
-            pass
+    # def __del__(self):
+    #     try:
+    #         release_account(self.account)
+    #     except AttributeError:
+    #         pass
 
     def _get_savers_page(self, audio_id, offset=0):
         n_try = 0
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
         while True:
             try:
-                with self.session.post(self.request_url, params=request_data) as resp:
-                    return self._check_account_is_blocked(resp=resp, audio_id=audio_id, offset=offset)
+                with requests.get(self.request_url, params=request_data) as resp:
+                    return resp.text
             except Exception:
                 print('Except _get_savers_page, n_try = ', n_try)
                 n_try += 1
                 sleep(uniform(0.1, 0.5))
-
-    def _check_account_is_blocked(self, resp, audio_id, offset):
-        if '/login?act=blocked_logout' in resp.text:
-            print(f'!!! Account {self.account.login} {self.account.password} is blocked !!!')
-            mark_account_dead(account=self.account)
-            remixsid, account = load_remixsid()
-            self.remixsid = remixsid
-            self.account = account
-            return self._get_savers_page(audio_id=audio_id, offset=offset)
-        else:
-            return resp.text
 
     @staticmethod
     def _get_users_from_page(page, audio_id):
@@ -220,13 +209,13 @@ class AudioSaversNew:
                 slice_start = 0
             slice_end = a_hrefs.index(pagination) if pagination in a_hrefs else None
 
-        users_hrefs = a_hrefs[slice_start + 1: slice_end]
+        users_hrefs = a_hrefs[slice_start + 1 if slice_start else None: slice_end]
 
         return int(max_offset) + len(users_hrefs)
 
     def get_savers_count_one_thread(self, audio_ids):
-        if not self.remixsid:
-            return None
+        # if not self.remixsid:
+        #     return None
 
         if isinstance(audio_ids, str):
             audio_ids = [audio_ids]
@@ -244,25 +233,23 @@ class AudioSaversNew:
 
     @staticmethod
     def get_savers_count(audio_ids):
-        # return get_savers_count_multiprocess(audio_ids)
-        return None
+        return get_savers_count_multiprocess(audio_ids)
 
     def get_savers_list(self, audio_id):
-        # page = self._get_savers_page(audio_id=audio_id)
-        # users, max_offset = self._get_users_from_page(page=page, audio_id=audio_id)
-        #
-        # from vk.audio_savers.parser import AudioSaversParser
-        # vk = AudioSaversParser()
-        # ids_dict = vk.get_user_ids_from_domains(domains=users)
-        # users = list(ids_dict.values())
-        #
-        # n_threads = calculate_n_threads(max_offset=max_offset)
-        #
-        # if max_offset:
-        #     users.extend(get_savers_list_multiprocess(audio_id=audio_id, max_offset=max_offset, n_threads=n_threads))
-        #
-        # return users
-        return None
+        page = self._get_savers_page(audio_id=audio_id)
+        users, max_offset = self._get_users_from_page(page=page, audio_id=audio_id)
+
+        from vk.audio_savers.parser import AudioSaversParser
+        vk = AudioSaversParser()
+        ids_dict = vk.get_user_ids_from_domains(domains=users)
+        users = list(ids_dict.values())
+
+        n_threads = calculate_n_threads(max_offset=max_offset)
+
+        if max_offset:
+            users.extend(get_savers_list_multiprocess(audio_id=audio_id, max_offset=max_offset, n_threads=n_threads))
+
+        return users
 
     def pars_savers_one_thread(self, audio_id, offset_from, offset_to, n_thread=1):
         users = []
