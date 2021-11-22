@@ -87,8 +87,9 @@ def get_audio_savers_multiprocess_new(audios):
     audios_with_savers_list = []
     for audio in audios:
         audio_id = f"{audio['owner_id']}_{audio['audio_id']}"
-        audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=result_dict[audio_id])
-        audios_with_savers_list.append(audio_with_savers)
+        if audio_id in result_dict.keys():
+            audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=result_dict[audio_id])
+            audios_with_savers_list.append(audio_with_savers)
 
     return audios_with_savers_list
 
