@@ -198,6 +198,18 @@ VK_PLAYLISTS = {
     'https://vk.com/music/playlist/-147845620_1097_cd415b5dfec1a8099c': 'Где-то слышал',
     'https://vk.com/music/playlist/-147845620_932_cc389fc792330bd782': 'Новый русский рок',
     'https://vk.com/music/playlist/-147845620_814_9f41b009a707a6a92f': 'Находки недели',
+    'https://vk.com/music/playlist/-147845620_1667_b37c6679a883371311': 'Дуэты',
+    'https://vk.com/music/playlist/-147845620_2306_06194184ba79bcc927': 'Новые имена',
+    'https://vk.com/music/playlist/-147845620_2364_e4315f49c5deb4fa78': 'Рок потяжелее',
+    'https://vk.com/music/playlist/-147845620_2076_6ff85cd62b16ea03ce': 'Русское инди',
+    'https://vk.com/music/playlist/-147845620_943_fe08e95c6dcbd98443': 'Русская волна поп-рока',
+    'https://vk.com/music/playlist/-147845620_2358_5fa2ebf6ad6e47c542': 'Хайперпоп',
+    'https://vk.com/music/playlist/-147845620_938_93355dfd0485cc2e6b': 'Инди и альтернатива',
+    'https://vk.com/music/playlist/-147845620_2402_d32990e1075b840f27': 'Фонк',
+    'https://vk.com/music/playlist/-147845620_774_fc3431ea92ade2049f': 'Новая музыка Украины',
+    'https://vk.com/music/playlist/-147845620_2212_7df8156f59d9553680': 'Новая музыка Казахстана',
+    'https://vk.com/music/playlist/-147845620_815_ee97d722f821e9f5f0': 'K-POP',
+    'https://vk.com/music/playlist/-147845620_933_fc9d32d70160ac96a8': 'Техно-рейв'
 }
 
 FEAT_SPLIT_SIMPOLS = [', ', ' feat. ', ' ft. ', ' Feat. ', ' FEAT. ', ' feat ', ' ft ', ' Feat ', ' FEAT ']

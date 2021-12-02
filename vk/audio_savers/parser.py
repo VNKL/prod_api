@@ -45,7 +45,10 @@ def clean_up_garbage_audios(audios):
     cleaned_audios = []
     for one_name_audios in audios_dict.values():
         one_name_audios.sort(key=lambda x: x['savers_count'], reverse=True)
-        cleaned_audios.append(one_name_audios[0])
+        if one_name_audios[0]['source'] == 'Поиск по аудиозаписям':
+            cleaned_audios.append(one_name_audios[0])
+        else:
+            cleaned_audios.extend(one_name_audios)
 
     cleaned_audios.sort(key=lambda x: x['savers_count'], reverse=True)
 
@@ -181,34 +184,36 @@ class AudioSaversParser(VkEngine):
         search_results = self._search_audios_execute(track_name, performer_only=0)
         audios.extend(utils.match_search_results(search_results, track_name))
 
-        if count_only:
-            artist_ids = utils.get_artists_domains_from_audios_list(audios)
-            release_upload_date = utils.get_release_upload_date(audios)
-            if artist_ids:
-                for artist_id in artist_ids:
-                    resp = self._api_response('catalog.getAudioArtist', {'artist_id': artist_id, 'need_blocks': 1})
-                    if resp and 'audios' in resp.keys():
-                        audios.extend(utils.mark_audios_by_source(resp['audios'], source='Карточка артиста'))
-                        artist_group = utils.pars_url_from_artist_card(resp, url_type='group')
-                        group_audios, group_id = self.get_by_group(artist_group, count_only, earlier_return=True)
-                        if group_audios:
-                            group_audios = utils.mark_audios_by_source(group_audios, source='Паблик артиста')
-                            audios.extend(group_audios)
-                        if group_id:
-                            group_wall_audios = self.get_posts_from_wall(owner_id=int(f'-{group_id}'))
-                            group_wall_audios = utils.mark_audios_by_source(group_wall_audios,
-                                                                            source='Пост на стене паблика артиста')
-                            audios.extend(group_wall_audios)
-                            wall = WallParser()
-                            date_from = date.fromtimestamp(release_upload_date) if release_upload_date else None
-                            date_to = date_from + timedelta(days=30) if date_from else None
-                            ad_posts = wall.get_group_posts(group=group_id, date_from=date_from, date_to=date_to,
-                                                            with_audio=True, dark_posts_only=True, pars_playlists=True,
-                                                            pars_audio_savers=False)
-                            if ad_posts:
-                                ad_audios = utils.iter_get_audios_from_posts(ad_posts)
-                                ad_audios = utils.mark_audios_by_source(ad_audios, source='Рекламный пост')
-                                audios.extend(ad_audios)
+        # if count_only:
+        artist_ids = utils.get_artists_domains_from_audios_list(audios)
+        release_upload_date = utils.get_release_upload_date(audios)
+        if artist_ids:
+            for artist_id in artist_ids:
+                resp = self._api_response('catalog.getAudioArtist', {'artist_id': artist_id, 'need_blocks': 1})
+                if resp and 'audios' in resp.keys():
+                    audios.extend(utils.mark_audios_by_source(resp['audios'], source='Карточка артиста'))
+                    card_pl_audios = self._search_track_in_artist_playlists(artist_card=resp, track_name=track_name)
+                    audios.extend(utils.mark_audios_by_source(card_pl_audios, source='Карточка артиста'))
+                    artist_group = utils.pars_url_from_artist_card(resp, url_type='group')
+                    group_audios, group_id = self.get_by_group(artist_group, count_only, earlier_return=True)
+                    if group_audios:
+                        group_audios = utils.mark_audios_by_source(group_audios, source='Паблик артиста')
+                        audios.extend(group_audios)
+                    if group_id:
+                        group_wall_audios = self.get_posts_from_wall(owner_id=int(f'-{group_id}'))
+                        group_wall_audios = utils.mark_audios_by_source(group_wall_audios,
+                                                                        source='Пост на стене паблика артиста')
+                        audios.extend(group_wall_audios)
+                        wall = WallParser()
+                        date_from = date.fromtimestamp(release_upload_date) if release_upload_date else None
+                        date_to = date_from + timedelta(days=30) if date_from else None
+                        ad_posts = wall.get_group_posts(group=group_id, date_from=date_from, date_to=date_to,
+                                                        with_audio=True, dark_posts_only=True, pars_playlists=True,
+                                                        pars_audio_savers=False)
+                        if ad_posts:
+                            ad_audios = utils.iter_get_audios_from_posts(ad_posts)
+                            ad_audios = utils.mark_audios_by_source(ad_audios, source='Рекламный пост')
+                            audios.extend(ad_audios)
 
         if audios:
             audios = utils.match_search_results(audios, track_name)
@@ -401,6 +406,24 @@ class AudioSaversParser(VkEngine):
                 users_ids_dict.update(batch_dict)
 
         return users_ids_dict
+
+    def _search_track_in_artist_playlists(self, artist_card, track_name):
+        if 'playlists' not in artist_card.keys():
+            return []
+        if ' - ' in track_name:
+            title = track_name.split(' - ')[1]
+        else:
+            title = track_name
+
+        audios = []
+        for playlist in artist_card['playlists']:
+            if playlist['title'] == title:
+                params = {'owner_id': playlist['owner_id'],
+                          'playlist_id': playlist['id'],
+                          'access_key': playlist['access_key']}
+                audios.extend(self._offsets_get_audios_from_list(params))
+
+        return audios
 
     def _get_block_audios(self, block_id):
         audios = []

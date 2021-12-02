@@ -202,27 +202,28 @@ def replace_doubles_decision(audio_1, audio_2):
 
 
 def process_audios_by_has_core(audios):
-    audios_dict = {}
-    for audio in audios:
-        name = f"{audio['artist']} - {audio['title']}"
-        if 'subtitle' in audio.keys():
-            name += f" ({audio['subtitle']})"
-
-        if name not in audios_dict.keys():
-            audios_dict[name] = [audio]
-        else:
-            audios_dict[name].append(audio)
-
-    processed_audios = []
-    for audios_list in audios_dict.values():
-        sorted_list = sorted(audios_list, key=lambda x: x['savers_count'], reverse=True)
-        max_savers_audio = sorted_list[0]
-        if str(max_savers_audio['owner_id'])[:4] in CORE_AUDIO_OWNERS:
-            processed_audios.append(sorted_list[0])
-        else:
-            processed_audios.extend(sorted_list)
-
-    return processed_audios
+    return audios
+    # audios_dict = {}
+    # for audio in audios:
+    #     name = f"{audio['artist']} - {audio['title']}"
+    #     if 'subtitle' in audio.keys():
+    #         name += f" ({audio['subtitle']})"
+    #
+    #     if name not in audios_dict.keys():
+    #         audios_dict[name] = [audio]
+    #     else:
+    #         audios_dict[name].append(audio)
+    #
+    # processed_audios = []
+    # for audios_list in audios_dict.values():
+    #     sorted_list = sorted(audios_list, key=lambda x: x['savers_count'], reverse=True)
+    #     max_savers_audio = sorted_list[0]
+    #     if str(max_savers_audio['owner_id'])[:4] in CORE_AUDIO_OWNERS:
+    #         processed_audios.append(sorted_list[0])
+    #     else:
+    #         processed_audios.extend(sorted_list)
+    #
+    # return processed_audios
 
 
 def code_for_iter_get_audio_savers(owner_id, audio_id, offsets_batch):
@@ -269,10 +270,10 @@ def code_for_get_savers_count(audios_batch):
 
 def code_for_search_audios(q, performer_only):
     code = 'return ['
-    for sort in [0, 2]:
-        # for offset in range(0, 1000, 300):
-        code += 'API.audio.search({q: "' + q + '", performer_only: ' + str(performer_only) + ', ' \
-                                  'count: 300, offset: ' + str(0) + ', sort: ' + str(sort) + '}), '
+    for sort in [0, 1, 2]:
+        for offset in range(0, 1000, 300):
+            code += 'API.audio.search({q: "' + q + '", performer_only: ' + str(performer_only) + ', ' \
+                                      'count: 300, offset: ' + str(0) + ', sort: ' + str(sort) + '}), '
     code = code[:-2]
     code += '];'
     return code
