@@ -191,8 +191,8 @@ def _pars_post_audios_after_moderate(ads, ads_stat, campaign, vk):
 def _process_campaign_stat(camp_listens, camp_reach, camp_saves, camp_spent, camp_clicks, camp_joins, campaign):
     campaign.spent = round(sum(camp_spent), 2) if sum(camp_spent) > campaign.spent else campaign.spent
     campaign.reach = sum(camp_reach) if sum(camp_reach) > campaign.reach else campaign.reach
-    campaign.listens = sum(camp_listens) if sum(camp_listens) > campaign.listens else campaign.listens
-    campaign.saves = sum(camp_saves) if sum(camp_saves) > campaign.saves else campaign.saves
+    campaign.listens = sum(camp_listens)
+    campaign.saves = sum(camp_saves)
     campaign.clicks = sum(camp_clicks) if sum(camp_clicks) > campaign.clicks else campaign.clicks
     campaign.joins = sum(camp_joins) if sum(camp_joins) > campaign.joins else campaign.joins
     campaign.cpm = round((campaign.spent / (campaign.reach / 1000)), 2) if campaign.reach else 0
@@ -245,10 +245,10 @@ def _process_ad_stat(ad, ads_stat, camp_spent, camp_reach, camp_clicks, camp_joi
         camp_joins.append(ad_stat['joins'] if 'joins' in ad_stat.keys() else 0)
 
     ad.cpm = round((ad.spent / (ad.reach / 1000)), 2) if ad.reach else 0
-    ad.listens = sum(ad_listens) if sum(ad_listens) > ad.listens else ad.listens
+    ad.listens = sum(ad_listens)
     ad.cpl = round((ad.spent / ad.listens), 2) if ad.listens else 0
     ad.lr = round((ad.listens / ad.reach), 4) if ad.reach else 0
-    ad.saves = sum(ad_saves) if sum(ad_saves) > ad.saves else ad.saves
+    ad.saves = sum(ad_saves)
     ad.cps = round((ad.spent / ad.saves), 2) if ad.saves else 0
     ad.sr = round((ad.saves / ad.reach), 4) if ad.reach else 0
     ad.cpc = round((ad.spent / ad.clicks), 2) if ad.clicks else 0
