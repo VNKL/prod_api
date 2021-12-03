@@ -5,7 +5,7 @@ from multiprocessing import Process, Manager
 from time import sleep
 from random import uniform
 
-from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS
+from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS, CORE_AUDIO_OWNERS
 from vk.audio_savers import utils
 from vk.wall_grabbing.parser import WallParser
 from vk.engine import VkEngine
@@ -45,8 +45,9 @@ def clean_up_garbage_audios(audios):
     cleaned_audios = []
     for one_name_audios in audios_dict.values():
         one_name_audios.sort(key=lambda x: x['savers_count'], reverse=True)
-        if one_name_audios[0]['source'] == 'Поиск по аудиозаписям':
-            cleaned_audios.append(one_name_audios[0])
+        audio = one_name_audios[0]
+        if audio['source'] == 'Поиск по аудиозаписям' and str(audio['owner_id'])[:4] in CORE_AUDIO_OWNERS:
+            cleaned_audios.append(audio)
         else:
             cleaned_audios.extend(one_name_audios)
 
