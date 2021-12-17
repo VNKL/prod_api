@@ -53,7 +53,7 @@ def get_ads_stat_summary(ads, stat):
                   'events_retargeting_groups', 'goal_type', 'impressions_limit', 'impressions_limit_period',
                   'start_time', 'stop_time', 'update_time']
 
-    summary_stat = {int(ad['id']): ad for ad in ads}
+    summary_stat = {int(ad['id']): ad for ad in ads if 'cpm' in ad.keys()}
     for v in summary_stat.values():
         v['cpm'] = round((int(v['cpm']) / 100), 2)
         v['id'] = int(v['id'])
