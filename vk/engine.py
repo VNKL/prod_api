@@ -1,4 +1,5 @@
 """ Use Python 3.7 """
+import json
 
 import requests
 
@@ -67,6 +68,8 @@ class VkEngine:
             resp = requests.post(url, data, proxies=proxy_dict).json()
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
+        except json.decoder.JSONDecodeError:
+            return self._handle_json_error(url, data, captcha_sid, captcha_key)
 
         if 'execute_errors' in resp.keys():
             return self._handle_execute_errors(url, data, captcha_sid, captcha_key, resp)
@@ -75,6 +78,12 @@ class VkEngine:
             return self._handle_api_error(captcha_key, captcha_sid, data, resp, url)
         else:
             return resp['response']
+
+    def _handle_json_error(self, url, data, captcha_sid, captcha_key):
+        if self.n_try < 10:
+            return self._get_api_response(url, data, captcha_sid, captcha_key)
+        else:
+            self.errors.append({'error_msg': 'VK API request max retries error (json.decoder.JSONDecodeError)'})
 
     def _handle_execute_errors(self, url, data, captcha_sid, captcha_key, resp):
         error_code = resp['execute_errors'][0]['error_code']
