@@ -30,8 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = prod_settings.SECRET_KEY if PRODUCTION else dev_settings.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True if not PRODUCTION else False
-DEBUG = True
+DEBUG = True if not PRODUCTION else False
 
 ALLOWED_HOSTS = prod_settings.ALLOWED_HOSTS if PRODUCTION else dev_settings.ALLOWED_HOSTS
 
