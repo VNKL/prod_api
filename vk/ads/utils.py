@@ -68,7 +68,7 @@ def get_ads_stat_summary(ads, stat):
         return summary_stat
 
     for ad in stat:
-        if ad['stats']:
+        if ad['stats'] and ad['id'] in summary_stat.keys():
             summary_stat[ad['id']].update(
                 {'spent': float(ad['stats'][0]['spent']) if 'spent' in ad['stats'][0].keys() else 0,
                  'reach': int(ad['stats'][0]['impressions']) if 'impressions' in ad['stats'][0].keys() else 0,
