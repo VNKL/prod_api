@@ -285,7 +285,7 @@ def _get_posts_ids_for_get_audios_from_post(ads, ads_stat):
     for ad in ads:
         audios = Audio.objects.filter(ad=ad)
         post_audios = [x for x in audios if not x.in_playlist and not x.audio_id] if audios else None
-        if post_audios and ads_stat[ad.ad_id]['approved'] == 2 and ad.approved == 1:
+        if post_audios and ads_stat[ad.ad_id]['approved'] == 2 and ad.approved in [1, 2]:
             post_ids.append(f'-{ad.post_owner}_{ad.post_id}')
     db.connections.close_all()
     return post_ids
