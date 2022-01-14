@@ -41,7 +41,7 @@ class VkAds(VkEngine):
         if reset_n_try:
             self.ads_n_try = 0
 
-        proxy_dict = {'https': f'http://{self.proxy}'} if self.proxy else None
+        proxy_dict = {'http': f'http://{self.proxy}'} if self.proxy else None
 
         if captcha_sid and captcha_key:
             if data:
