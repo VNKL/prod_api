@@ -73,7 +73,7 @@ def get_audio_savers_multiprocess_new(audios):
                           args=(pairs_batches[n], result_list, finished_list, n))
         process.start()
         processes.append(process)
-        sleep(uniform(0.5, 1))
+        sleep(uniform(1, 2))
 
     parsing_in_process = True
     while parsing_in_process:
@@ -115,6 +115,7 @@ def get_savers_list_one_process_new(pairs, result_list, finished_list, n_thread)
             print(f'Process {n_thread + 1} \t | \t Parsed: {n + 1} / {len_pairs}')
         else:
             print(f'Process {n_thread + 1} \t | \t Parsing error: {n + 1} / {len_pairs}')
+        sleep(uniform(0.3, 0.5))
 
     print(f'------ Process {n_thread + 1} finished parsing savers ------')
     print(f'------ Process {n_thread + 1} start converting domains to ids ------')
