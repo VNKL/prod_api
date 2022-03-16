@@ -84,7 +84,10 @@ def iter_zip_audio_obj_and_savers_new(audios, savers_counters):
     audios_with_savers_count = []
     for audio in audios:
         audio_id = f"{audio['owner_id']}_{audio['id']}"
-        savers_count = savers_counters[audio_id] if audio_id in savers_counters.keys() else None
+        if isinstance(savers_counters, dict):
+            savers_count = savers_counters[audio_id] if audio_id in savers_counters.keys() else None
+        else:
+            savers_count = None
         zipped = zip_audio_obj_and_savers(audio, savers_count)
         audios_with_savers_count.append(zipped)
     return audios_with_savers_count

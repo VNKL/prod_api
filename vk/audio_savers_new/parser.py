@@ -149,6 +149,7 @@ class AudioSaversNew:
     #         pass
 
     def _get_savers_page(self, audio_id, offset=0):
+        sleep(uniform(0.3, 0.5))
         n_try = 0
         request_data = {'act': 'members', 'object': f'audio{audio_id}', 'offset': offset}
         while True:
