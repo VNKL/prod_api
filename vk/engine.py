@@ -36,13 +36,15 @@ class VkEngine:
 
     def __init__(self):
         self.account = load_account()
-        self.proxy = load_proxy()
+        self.proxy = None
         self.errors = []
         self.n_try = 0
 
     def __del__(self):
-        release_account(self.account)
-        release_proxy(self.proxy)
+        try:
+            release_account(self.account)
+        except AttributeError:
+            pass
 
     def _get_api_response(self, url, data, captcha_sid=None, captcha_key=None):
         """
@@ -56,7 +58,7 @@ class VkEngine:
         """
         sleep(uniform(0.4, 0.6))
 
-        proxy_dict = {'http': f'http://{self.proxy}'} if self.proxy else None
+        proxy_dict = {'https': f'http://{self.proxy}'} if self.proxy else None
 
         if captcha_sid and captcha_key:
             if data:

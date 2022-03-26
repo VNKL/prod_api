@@ -5,6 +5,7 @@ from multiprocessing import Process, Manager
 from time import sleep
 from random import uniform
 
+from api.accounts.utils import load_cookies, release_account
 from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS, CORE_AUDIO_OWNERS
 from vk.audio_savers import utils
 from vk.wall_grabbing.parser import WallParser
@@ -13,10 +14,17 @@ from vk.audio_savers_new.parser import AudioSaversNew
 from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, code_for_get_users, \
     unpack_execute_get_users, slice_audios_to_id_offset_pairs, calculate_n_threads_new, slice_to_batches, \
     result_list_to_dict
+from .utils import is_auth_need
 
 
 def get_audio_savers_multiprocess(audios):
-    vk = AudioSaversNew()
+    need_auth = is_auth_need(audios)
+    if need_auth:
+        cookies, account = load_cookies()
+    else:
+        cookies, account = None, None
+
+    vk = AudioSaversNew(cookies=cookies)
     audios_with_savers_list = []
     audios = clean_up_garbage_audios(audios)
     for n, audio in enumerate(audios):
@@ -26,6 +34,8 @@ def get_audio_savers_multiprocess(audios):
         audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=savers_list)
         audios_with_savers_list.append(audio_with_savers)
         print(f"{n + 1} / {len(audios)}   |   {audio['artist']} - {audio['title']}   |   Finished parsing audio savers")
+
+    release_account(account)
 
     return audios_with_savers_list
 
@@ -58,6 +68,12 @@ def clean_up_garbage_audios(audios):
 
 def get_audio_savers_multiprocess_new(audios):
     audios = clean_up_garbage_audios(audios=audios)
+    need_auth = is_auth_need(audios)
+    if need_auth:
+        cookies, account = load_cookies()
+    else:
+        cookies, account = None, None
+
     pairs, audio_ids = slice_audios_to_id_offset_pairs(audios=audios)
     n_threads = calculate_n_threads_new(pairs=pairs)
     pairs_batches = slice_to_batches(array=pairs, n_threads=n_threads)
@@ -70,7 +86,7 @@ def get_audio_savers_multiprocess_new(audios):
     processes = []
     for n in range(n_threads):
         process = Process(target=get_savers_list_one_process_new,
-                          args=(pairs_batches[n], result_list, finished_list, n))
+                          args=(pairs_batches[n], result_list, finished_list, cookies, n))
         process.start()
         processes.append(process)
         sleep(uniform(1, 2))
@@ -95,11 +111,13 @@ def get_audio_savers_multiprocess_new(audios):
             audio_with_savers = utils.zip_audio_obj_and_savers(audio=audio, savers=result_dict[audio_id])
             audios_with_savers_list.append(audio_with_savers)
 
+    release_account(account)
+
     return audios_with_savers_list
 
 
-def get_savers_list_one_process_new(pairs, result_list, finished_list, n_thread):
-    vk = AudioSaversNew()
+def get_savers_list_one_process_new(pairs, result_list, finished_list, cookies, n_thread):
+    vk = AudioSaversNew(cookies=cookies)
     audio_savers = {}
     all_domains = []
     len_pairs = len(pairs)
@@ -115,7 +133,7 @@ def get_savers_list_one_process_new(pairs, result_list, finished_list, n_thread)
             print(f'Process {n_thread + 1} \t | \t Parsed: {n + 1} / {len_pairs}')
         else:
             print(f'Process {n_thread + 1} \t | \t Parsing error: {n + 1} / {len_pairs}')
-        sleep(uniform(0.3, 0.5))
+        # sleep(uniform(0.3, 0.5))
 
     print(f'------ Process {n_thread + 1} finished parsing savers ------')
     print(f'------ Process {n_thread + 1} start converting domains to ids ------')

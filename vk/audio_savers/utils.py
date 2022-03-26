@@ -372,3 +372,11 @@ def mark_audios_by_source(audios, source):
         marked_audios.append(audio)
 
     return marked_audios
+
+
+def is_auth_need(audios):
+    check = []
+    for audio in audios:
+        owner_id = str(audio['owner_id'])
+        check.append(True if owner_id[:5] == '-2001' else False)
+    return any(check)

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import AccountIndexView, AccountAddView, AccountGetView, AccountGetAllViewSet, \
-    AccountResetView, AccountResetAllView, ProxyAddView, ProxyDelExpiredView, ProxyGetAllViewSet
+    AccountResetView, AccountResetAllView, ProxyAddView, ProxyDelExpiredView, ProxyGetAllViewSet, ProxyResetAllView
 
 app_name = 'accounts'
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path('.addProxy', ProxyAddView.as_view()),
     path('.getAllProxies', ProxyGetAllViewSet.as_view({'get': 'list'})),
     path('.delExpiredProxies', ProxyDelExpiredView.as_view()),
+    path('.resetAllProxies', ProxyResetAllView.as_view()),
 ]

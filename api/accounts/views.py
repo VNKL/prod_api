@@ -4,11 +4,12 @@ from rest_framework import viewsets, views, status
 from rest_framework import permissions
 from rest_framework.response import Response
 
-from api.accounts.serializers import AccountSerializer, AccountAddSerializer, AccountResetSerializer, ProxyAddSerializer, ProxySerializer
+from api.accounts.serializers import AccountSerializer, AccountAddSerializer, AccountResetSerializer, \
+    ProxyAddSerializer, ProxySerializer, ProxyResetSerializer
 from api.accounts.management.commands.add_account import add_account
 from api.accounts.management.commands.reset_accounts import reset_one, reset_all
 from api.accounts.models import Account, Proxy
-from .utils import create_proxy, del_expired_proxy
+from .utils import create_proxy, del_expired_proxy, release_all_proxies
 
 
 class AccountIndexView(views.APIView):
@@ -125,3 +126,15 @@ class ProxyGetAllViewSet(viewsets.ModelViewSet):
     db.connections.close_all()
     serializer_class = ProxySerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class ProxyResetAllView(views.APIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        settings = ProxyResetSerializer(data=request.query_params)
+        if settings.is_valid():
+            response = release_all_proxies(**settings.validated_data)
+            return Response(response, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'some error'}, status=status.HTTP_400_BAD_REQUEST)

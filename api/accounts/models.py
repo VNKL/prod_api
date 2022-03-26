@@ -38,3 +38,6 @@ class ParsingThreadCount(models.Model):
     def __str__(self):
         return f'Current parsing max threads count: {self.max_threads}, offset param: {self.offset_param}'
 
+
+class ProxiesSetting(models.Model):
+    max_n_used = models.IntegerField(default=10)

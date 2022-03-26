@@ -1,7 +1,7 @@
 from python_rucaptcha import ImageCaptcha
 from django import db
 
-from api.settings import RUCAPTCHA_KEY
+from api.settings import RUCAPTCHA_KEY, CORE_AUDIO_OWNERS
 from api.accounts.models import ParsingThreadCount
 
 
@@ -187,3 +187,10 @@ def calculate_n_threads_for_savers_count(audio_ids):
     else:
         return max_threads
 
+
+def is_auth_need(audio_ids):
+    check = []
+    for audio in audio_ids:
+        owner_id = audio.split('_')[0]
+        check.append(True if owner_id[:5] == '-2001' else False)
+    return any(check)

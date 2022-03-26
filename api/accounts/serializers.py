@@ -32,3 +32,8 @@ class AccountResetSerializer(serializers.Serializer):
 class ProxyAddSerializer(serializers.Serializer):
     proxy = serializers.CharField()
     period = serializers.IntegerField()
+
+
+class ProxyResetSerializer(serializers.Serializer):
+    n_used = serializers.CharField(required=False, default=True)
+    is_alive = serializers.CharField(required=False, default=True)
