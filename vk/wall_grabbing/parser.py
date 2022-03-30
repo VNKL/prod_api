@@ -1,6 +1,7 @@
 from datetime import date
 
 from vk.engine import VkEngine
+from vk.audio_savers_new.parser import AudioSaversNew
 from . import utils
 
 
@@ -96,7 +97,7 @@ class WallParser(VkEngine):
             if resp:
                 for batch_resp in resp:
                     for post in batch_resp:
-                        if isinstance(post, dict) and post['post_type'] == 'post_ads':
+                        if isinstance(post, dict) and 'post_type' in post.keys() and post['post_type'] == 'post_ads':
                             posts.append(post)
 
         return posts
@@ -242,6 +243,7 @@ class WallParser(VkEngine):
 
     def _get_post_audios_savers(self, posts):
         many_audios, one_audio, without_audio = utils.filter_posts_for_audio_savers(posts)
+        vk = AudioSaversNew()
 
         if one_audio:
             for x in range(0, len(one_audio), 25):
@@ -252,18 +254,22 @@ class WallParser(VkEngine):
                     for n, post in enumerate(one_audio[x:y]):
                         for attach in post['attachments']:
                             if attach['type'] == 'audio':
-                                attach['audio']['savers_count'] = resp[n]
+                                audio = attach['audio']
+                                audio_id = f"{audio['owner_id']}_{audio['id']}"
+                                savers_count = vk._get_savers_count_for_one_audio(audio_id=audio_id)
+                                attach['audio']['savers_count'] = savers_count
 
         if many_audios:
             for post in many_audios:
                 code = utils.code_for_get_post_audios_savers_count(post)
                 resp = self._execute_response(code)
                 if resp:
-                    n = 0
                     for attach in post['attachments']:
                         if attach['type'] == 'audio':
-                            attach['audio']['savers_count'] = resp[n]
-                            n += 1
+                            audio = attach['audio']
+                            audio_id = f"{audio['owner_id']}_{audio['id']}"
+                            savers_count = vk._get_savers_count_for_one_audio(audio_id=audio_id)
+                            attach['audio']['savers_count'] = savers_count
 
         return one_audio + many_audios + without_audio
 
