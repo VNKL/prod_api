@@ -3,7 +3,7 @@ from random import uniform
 from time import sleep
 
 from vk.engine import VkEngine
-from .utils import code_for_savers_count
+from .utils import code_for_savers_count, need_execute
 from vk.audio_savers_new.utils import calculate_n_threads_for_savers_count, slice_to_batches
 
 
@@ -51,11 +51,18 @@ def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
 
 class AudioLikes(VkEngine):
 
-    def _sc_for_one_audio(self, audio_id: str):
-        code = code_for_savers_count(*audio_id.split('_'))
-        resp = self._execute_response(code=code)
-        if resp and isinstance(resp, int):
-            return resp
+    def _sc_for_one_audio(self, full_audio_id: str):
+        owner_id, audio_id = full_audio_id.split('_')
+        if need_execute(audio_id=full_audio_id):
+            code = code_for_savers_count(owner_id=owner_id, audio_id=audio_id)
+            resp = self._execute_response(code=code)
+            if resp and isinstance(resp, int):
+                return resp
+        else:
+            data = {'type': 'audio', 'owner_id': owner_id, 'item_id': audio_id}
+            resp = self._api_response(method='likes.add', params=data)
+            if isinstance(resp, dict) and 'likes' in resp.keys():
+                return resp['likes']
 
     def get_savers_count_one_thread(self, audio_ids):
         if isinstance(audio_ids, str):
@@ -67,7 +74,7 @@ class AudioLikes(VkEngine):
 
         savers_count = {}
         for audio_ids in audio_ids:
-            sc = self._sc_for_one_audio(audio_id=audio_ids)
+            sc = self._sc_for_one_audio(full_audio_id=audio_ids)
             savers_count[audio_ids] = sc
 
         return savers_count

@@ -68,6 +68,8 @@ class VkEngine:
 
         try:
             resp = requests.post(url, data, proxies=proxy_dict).json()
+            print(url)
+            print(resp)
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             return self._handle_requests_error(url, data, captcha_sid, captcha_key)
         except json.decoder.JSONDecodeError:
