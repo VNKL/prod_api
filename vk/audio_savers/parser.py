@@ -11,6 +11,7 @@ from vk.audio_savers import utils
 from vk.wall_grabbing.parser import WallParser
 from vk.engine import VkEngine
 from vk.audio_savers_new.parser import AudioSaversNew
+from vk.audio_likes.parser import AudioLikes
 from vk.audio_savers_new.utils import convert_users_domains_to_execute_batches, code_for_get_users, \
     unpack_execute_get_users, slice_audios_to_id_offset_pairs, calculate_n_threads_new, slice_to_batches, \
     result_list_to_dict
@@ -509,7 +510,7 @@ class AudioSaversParser(VkEngine):
         return audios
 
     def _get_savers_count(self, audios):
-        vk = AudioSaversNew()
+        vk = AudioLikes()
         audio_ids = [f"{x['owner_id']}_{x['id']}" for x in audios]
         saves_counters = vk.get_savers_count(audio_ids=audio_ids)
         audios_with_savers_count = utils.iter_zip_audio_obj_and_savers_new(audios, saves_counters)

@@ -94,6 +94,11 @@ class VkEngine:
             self.account = load_account()
             data['access_token'] = self.account.token
             return self._get_api_response(url, data, captcha_sid, captcha_key)
+        elif error_code in TOKEN_FATAL_ERRORS:
+            mark_account_dead(self.account)
+            self.account = load_account()
+            data['access_token'] = self.account.token
+            return self._get_api_response(url, data, captcha_sid, captcha_key)
         else:
             return resp['response']
 

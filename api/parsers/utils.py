@@ -15,6 +15,8 @@ from api.settings import CORE_AUDIO_OWNERS
 
 
 def create_parser(user, data):
+    data['count_only'] = True   # Теперь невозможно парсить айдишки, только количество
+
     available_sources = ['artist_url', 'track_name', 'group', 'playlist', 'post', 'chart', 'new_releases', 'newsfeed',
                          'parser', 'audio']
     method = 'get_by_'
