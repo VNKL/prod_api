@@ -21,7 +21,6 @@ def rename_campaign(campaign, title):
     return campaign
 
 
-
 def delete_campaign(user, data):
     campaign = Campaign.objects.filter(owner=user, campaign_id=data['id']).first()
     if not campaign:

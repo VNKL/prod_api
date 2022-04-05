@@ -8,7 +8,7 @@ from random import uniform
 from api.settings import RUCAPTCHA_KEY
 from vk.engine import VkEngine, anticaptcha
 from vk.ads import utils
-from vk.audio_savers_new.parser import AudioSaversNew
+from vk.audio_likes.parser import AudioLikes
 from api.accounts.utils import release_proxy, load_proxy
 
 
@@ -191,7 +191,7 @@ class VkAds(VkEngine):
         #         audios_with_savers.extend(audios_batch)
 
         audio_ids = [f"{x['owner_id']}_{x['id']}" for x in audios]
-        vk = AudioSaversNew()
+        vk = AudioLikes()
         savers_count = vk.get_savers_count(audio_ids)
 
         if savers_count:
