@@ -53,16 +53,16 @@ class AudioLikes(VkEngine):
 
     def _sc_for_one_audio(self, full_audio_id: str):
         owner_id, audio_id = full_audio_id.split('_')
-        if need_execute(audio_id=full_audio_id):
-            code = code_for_savers_count(owner_id=owner_id, audio_id=audio_id)
-            resp = self._execute_response(code=code)
-            if resp and isinstance(resp, int):
-                return resp
-        else:
-            data = {'type': 'audio', 'owner_id': owner_id, 'item_id': audio_id}
-            resp = self._api_response(method='likes.add', params=data)
-            if isinstance(resp, dict) and 'likes' in resp.keys():
-                return resp['likes']
+        # if need_execute(audio_id=full_audio_id):
+        code = code_for_savers_count(owner_id=owner_id, audio_id=audio_id)
+        resp = self._execute_response(code=code)
+        if resp and isinstance(resp, int):
+            return resp
+        # else:
+        #     data = {'type': 'audio', 'owner_id': owner_id, 'item_id': audio_id}
+        #     resp = self._api_response(method='likes.add', params=data)
+        #     if isinstance(resp, dict) and 'likes' in resp.keys():
+        #         return resp['likes']
 
     def get_savers_count_one_thread(self, audio_ids):
         if isinstance(audio_ids, str):
