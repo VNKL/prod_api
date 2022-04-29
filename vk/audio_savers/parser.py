@@ -4,6 +4,8 @@ from datetime import date, timedelta
 from multiprocessing import Process, Manager
 from time import sleep
 from random import uniform
+import json
+import requests
 
 from api.accounts.utils import load_cookies, release_account
 from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS, CORE_AUDIO_OWNERS
@@ -155,7 +157,7 @@ def get_savers_list_one_process_new(pairs, result_list, finished_list, cookies, 
 
 class AudioSaversParser(VkEngine):
 
-    def get_by_artist_url(self, artist_card_url, count_only):
+    def __get_by_artist_url_old(self, artist_card_url, count_only):
         if 'https://vk.com/artist/' not in artist_card_url:
             self.errors.append({'method': 'api/parsers/get_by_artist_url', 'param': artist_card_url,
                                 'error_msg': 'Invalid artist url'})
@@ -191,6 +193,32 @@ class AudioSaversParser(VkEngine):
             user_wall_audios = utils.mark_audios_by_source(user_wall_audios, source='Пост на личной странице артиста')
             audios.extend(utils.match_search_results(user_audios, artist_name))
             audios.extend(utils.match_search_results(user_wall_audios, artist_name))
+
+        if audios:
+            audios = utils.clean_audio_doubles(audios)
+            return self.get_by_audios(audios, count_only, n_threads=8)
+        else:
+            self.errors.append({'method': 'api/parsers/get_by_artist_url', 'param': artist_card_url,
+                                'error_msg': 'Artist audios are not found'})
+
+    def get_by_artist_url(self, artist_card_url, count_only):
+        if 'https://vk.com/artist/' not in artist_card_url:
+            self.errors.append({'method': 'api/parsers/get_by_artist_url', 'param': artist_card_url,
+                                'error_msg': 'Invalid artist url'})
+            return None
+
+        audios = []
+        artist_id = artist_card_url.replace('https://vk.com/artist/', '')
+
+        resp = self._api_response('catalog.getAudioArtist', {'artist_id': artist_id, 'need_blocks': 1})
+        if resp and 'artists' in resp.keys():
+            artist_name = resp['artists'][0]['name']
+            audios.extend(utils.mark_audios_by_source(resp['audios'], source='Карточка артиста'))
+            search_results = self._search_audios_execute(artist_name, performer_only=1)
+            audios.extend(utils.match_search_results(search_results, artist_name))
+        else:
+            self.errors.append({'method': 'api/parsers/get_by_artist_url', 'param': artist_card_url,
+                                'error_msg': 'Artist is not found'})
 
         if audios:
             audios = utils.clean_audio_doubles(audios)
@@ -556,6 +584,11 @@ class AudioSaversParser(VkEngine):
     def _search_audios_execute(self, q, performer_only: int):
         audios = []
 
+        core_audios = self._search_core_audios(q=q)
+        if core_audios:
+            core_audios = utils.mark_audios_by_source(core_audios, source='Альтернативный поиск по аудиозаписям')
+            audios.extend(core_audios)
+
         code = utils.code_for_search_audios(q, performer_only)
         execute_resp = self._execute_response(code)
         if execute_resp:
@@ -589,6 +622,20 @@ class AudioSaversParser(VkEngine):
                         audios.extend(utils.mark_audios_by_source(resp['audios'], source='Карточка артиста'))
 
         return audios
+
+    def _search_core_audios(self, q):
+        vk = CoreAudios()
+        ids = vk.search(q=q)
+        if ids:
+            audios = []
+            ids_count = len(ids)
+            for x in range(0, ids_count, 100):
+                y = x + 100 if x + 100 <= ids_count else None
+                ids_batch = ids[x:y]
+                resp = self._api_response('audio.getById', {'audios': ','.join(ids_batch)})
+                if isinstance(resp, list):
+                    audios.extend(resp)
+            return audios
 
     def _get_group_id(self, group):
         group_id = None
@@ -638,3 +685,53 @@ class AudioSaversParser(VkEngine):
         resp = self._api_response('wall.getById', {'posts': post_id})
         if resp:
             return resp[0]
+
+
+class CoreAudios:
+
+    def __init__(self):
+        self.url = 'https://vk.go.mail.ru/vk/music'
+        self.n_try = 0
+        self.errors = []
+
+    def __get_response(self, q, count):
+        params = {'num': count, 'q': q}
+        try:
+            resp = requests.get(self.url, params=params).json()
+            self.n_try = 0
+            return resp
+        except json.decoder.JSONDecodeError:
+            return self.__handle_json_error(q, count)
+
+    def __handle_json_error(self, q, count):
+        if self.n_try < 10:
+            return self.__get_response(q, count)
+        else:
+            self.errors.append({'error_msg': 'vk.go.mail.ru request max retries error (json.decoder.JSONDecodeError)'})
+
+    @staticmethod
+    def __check_results(resp):
+        if isinstance(resp, dict) and 'serp' in resp.keys():
+            serp = resp['serp']
+            if isinstance(serp, dict) and 'results' in serp.keys():
+                results = serp['results']
+                if isinstance(results, list):
+                    return results
+
+    @staticmethod
+    def __unpack_results(results):
+        if results:
+            alternative_ids = []
+            for x in results:
+                if isinstance(x, dict) and 'alternative_ids' in x.keys():
+                    ids = x['alternative_ids']
+                    alternative_ids.extend(ids)
+            alternative_ids = list(set(alternative_ids))
+            core_ids = [x for x in alternative_ids if x[:4] in CORE_AUDIO_OWNERS]
+            return core_ids
+
+    def search(self, q, count=1500):
+        resp = self.__get_response(q, count)
+        results = self.__check_results(resp)
+        ids = self.__unpack_results(results)
+        return ids

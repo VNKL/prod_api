@@ -147,6 +147,7 @@ def clean_audio_doubles(audios):
 
 def replace_doubles_decision(audio_1, audio_2):
     priority = {
+        'Альтернативный поиск по аудиозаписям': 0,
         'Карточка артиста': 1,
         'Паблик артиста': 10,
         'Пост на стене паблика артиста': 6,
