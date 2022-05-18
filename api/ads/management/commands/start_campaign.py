@@ -371,7 +371,19 @@ def _get_musicians(campaign):
 
     all_musicians = list(set(all_musicians))
 
-    return all_musicians
+    # очистка от пробелов в начале и конце
+    cleared_musicians_names = []
+    for x in all_musicians:
+        name = x
+        while name[-1] == ' ':
+            name = name[:-1]
+        while name[0] == ' ':
+            name = name[1:]
+        cleared_musicians_names.append(name)
+
+    cleared_musicians_names.sort()
+
+    return cleared_musicians_names
 
 
 def _get_related(campaign):

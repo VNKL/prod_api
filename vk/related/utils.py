@@ -84,7 +84,7 @@ def filter_artist_cards(artist_cards, listens_min=25000, listens_max=150000, n_r
         return filtered_cards
 
     for card in artist_cards:
-        if 'playlists' in card.keys() and card['playlists']:
+        if isinstance(card, dict) and 'playlists' in card.keys() and card['playlists']:
             y = n_releases if len(card['playlists']) > n_releases else None
             releases = card['playlists'][:y]
             check = _filter_artist_by_listens(releases, listens_min, listens_max)
