@@ -371,6 +371,10 @@ def _get_musicians(campaign):
 
     all_musicians = list(set(all_musicians))
 
+    # очистка пустых имен
+    all_musicians = [x for x in all_musicians if isinstance(x, str)]
+    all_musicians = [x for x in all_musicians if len(x) > 2]
+
     # очистка от пробелов в начале и конце
     cleared_musicians_names = []
     for x in all_musicians:
