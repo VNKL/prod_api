@@ -6,7 +6,7 @@ class User(DjangoUser):
     DEFAULT_AVA_URL = 'http://my-engine.ru/modules/users/avatar.png'
 
     balance = models.IntegerField(default=0)
-    ads_token = models.CharField(max_length=100, blank=True, null=True)
+    ads_token = models.CharField(max_length=1000, blank=True, null=True)
     user_id = models.BigIntegerField(blank=True, null=True)
     ava_url = models.TextField(default=DEFAULT_AVA_URL)
     has_token = models.BooleanField(default=False)
