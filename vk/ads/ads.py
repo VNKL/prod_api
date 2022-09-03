@@ -4,6 +4,7 @@ import requests
 
 from time import sleep
 from random import uniform
+from bs4 import BeautifulSoup
 
 from api.settings import RUCAPTCHA_KEY
 from vk.engine import VkEngine, anticaptcha
@@ -399,15 +400,14 @@ class VkAds(VkEngine):
         pl_audios = [f"{x['owner_id']}_{x['audio_id']}" for x in reference['playlist']['audios']]
         pl_audios_str = ','.join(pl_audios)
 
-        resp = self._api_response('execute.savePlaylist', {'owner_id': fake_group_id * -1,
-                                                           'title': reference['playlist']['title'],
-                                                           'audio_ids_to_add': pl_audios_str})
-
-        if isinstance(resp, dict) and 'playlist' in resp.keys() and isinstance(resp['playlist'], dict) \
-                and 'owner_id' in resp['playlist'].keys() and 'id' in resp['playlist'].keys() \
-                and resp['playlist']['owner_id'] and resp['playlist']['id']:
-            reference['playlist']['owner_id'] = resp['playlist']['owner_id']
-            reference['playlist']['playlist_id'] = resp['playlist']['id']
+        resp = self._api_response('audio.createPlaylist', {'owner_id': fake_group_id * -1,
+                                                           'title': reference['playlist']['title']})
+        if isinstance(resp, dict) and 'id' in resp.keys():
+            self._api_response('audio.addToPlaylist', {'owner_id': resp['owner_id'],
+                                                       'playlist_id': resp['id'],
+                                                       'audio_ids': pl_audios_str})
+            reference['playlist']['owner_id'] = resp['owner_id']
+            reference['playlist']['playlist_id'] = resp['id']
             reference['playlist']['is_reference'] = False
             self._upload_playlist_cover(reference)
         else:
@@ -451,11 +451,22 @@ class VkAds(VkEngine):
     def _pars_playlist(self, post):
         playlist = utils.pars_playlists_from_post(post)
         if playlist:
-            resp = self._api_response('audio.get', params={**playlist})
-            if resp and 'items' in resp.keys():
-                audios = utils.simplify_vk_objs(resp['items'], obj_type='audio')
-                playlist.update({'audios': audios})
-            return playlist
+            audios = self._get_playlist_audios_by_html(playlist['owner_id'], playlist['playlist_id'])
+            if audios:
+                resp = self._api_response('audio.getById', params={'audios': audios})
+                if isinstance(resp, list) and resp:
+                    audios = utils.simplify_vk_objs(resp, obj_type='audio')
+                    playlist.update({'audios': audios})
+                return playlist
+
+    @staticmethod
+    def _get_playlist_audios_by_html(owner_id, playlist_id):
+        url = f'https://m.vk.com/audio?act=audio_playlist{owner_id}_{playlist_id}'
+        page = requests.get(url).text
+        soup = BeautifulSoup(page, 'lxml')
+        divs = soup.find("div", class_='AudioPlaylistRoot')
+        if len(divs) > 0:
+            return ','.join(x['data-id'] for x in divs)
 
     def _get_ads(self, cabinet_id, campaign_id, client_id=None):
         params = {'account_id': cabinet_id, 'client_id': client_id,
