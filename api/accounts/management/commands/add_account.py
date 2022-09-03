@@ -4,7 +4,6 @@ from django.core.management.base import BaseCommand
 from django import db
 from random import randint
 
-from vk.auth.auth import VKAuth
 from api.accounts.models import Account
 from api.accounts.serializers import AccountSerializer
 
@@ -30,18 +29,24 @@ def add_account(login, password):
         return acc_serializer.data
 
     new_password = random_password()
-    vk_session = vk_api.VkApi(login, password,)
+    vk = vk_api.VkApi(login=login, password=password, app_id=6121396, api_version='5.116', scope=1073737727)
 
     try:
-        vk_session.auth()
-        vk = vk_session.get_api()
-        response = vk.account.changePassword(old_password=password, new_password=new_password)
-        if response:
-            token, user_id = get_token(login=login, password=new_password)
-            return save_account(login, new_password, token, user_id)
+        vk.auth()
+        api = vk.get_api()
+        token_resp = api.account.changePassword(old_password=password, new_password=new_password)
+        if isinstance(token_resp, dict) and 'token' in token_resp.keys():
+            token = token_resp['token']
+            vk.token = {'access_token': token}
+            user_resp = api.users.get()
+            if isinstance(user_resp, list) and len(user_resp) > 0:
+                user = user_resp[0]
+                if isinstance(user, dict) and 'id' in user.keys():
+                    user_id = user['id']
+                    return save_account(login, new_password, token, user_id)
+
     except (Exception, vk_api.AuthError, vk_api.exceptions.ApiError, vk_api.exceptions.Captcha):
-        token, user_id = get_token(login=login, password=password)
-        return save_account(login, password, token, user_id)
+        return save_account(None, None, None, None)
 
 
 def save_account(login, password, token, user_id):
@@ -60,15 +65,6 @@ def save_account(login, password, token, user_id):
         'token': token,
         'user_id': user_id
     }
-
-
-def get_token(login, password, proxy=None):
-    try:
-        vk = VKAuth(['offline,audio,wall,groups,video'], '6146827', '5.116', email=login, pswd=password, proxy=proxy)
-        vk.auth()
-        return vk.get_token(), vk.get_user_id()
-    except ConnectionAbortedError:
-        return None, None
 
 
 def random_password():
