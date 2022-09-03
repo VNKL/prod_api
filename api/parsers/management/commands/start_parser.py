@@ -31,7 +31,13 @@ def start_parser(parser_id):
         print(f'no parser with id {parser_id}')
     else:
         try:
-            _start_parsing(parser)
+            # _start_parsing(parser)
+            # db.connections.close_all()
+            db.connections.close_all()
+            parser.status = 0
+            parser.error = 'заглушка на старт парсинга'
+            parser.finish_date = timezone.now()
+            parser.save()
             db.connections.close_all()
         except Exception as exc:
             db.connections.close_all()
