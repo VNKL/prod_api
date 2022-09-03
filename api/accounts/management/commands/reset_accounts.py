@@ -18,6 +18,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['login'] or options['user_id']:
             reset_one(**options)
+        elif options['is_busy'] and options['is_rate_limited'] and options['rate_limit_date']:
+            reset_all(is_busy=True, is_rate_limited=True, rate_limit_date=True)
         else:
             reset_all(**options)
 
@@ -53,6 +55,7 @@ def reset_all(is_busy=False, is_rate_limited=False, is_alive=False, rate_limit_d
 
     Account.objects.bulk_update(updated_accs, fields=updated_fields, batch_size=40)
     db.connections.close_all()
+    print('accounts was reset')
     return updated_accs
 
 
