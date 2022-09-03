@@ -7,6 +7,8 @@ from random import uniform
 import json
 import requests
 
+from bs4 import BeautifulSoup
+
 from api.accounts.utils import load_cookies, release_account
 from api.settings import NEW_RELEASES_SECTION_ID, CHART_BLOCK_ID, VK_PLAYLISTS, CORE_AUDIO_OWNERS
 from vk.audio_savers import utils
@@ -520,21 +522,19 @@ class AudioSaversParser(VkEngine):
         return self._api_response('catalog.getSection', api_method_params)
 
     def _offsets_get_audios_from_list(self, method_params_dict):
-        count = 0
         audios = []
-        resp = self._api_response('audio.get', method_params_dict)
-        if resp and 'items' in resp.keys() and 'count' in resp.keys():
-            audios.extend(resp['items'])
-            count = resp['count']
-
-        if count > 200:
-            for offset in range(200, count, 200):
-                params = method_params_dict.copy()
-                params['offset'] = offset
-                offset_resp = self._api_response('audio.get', params)
-                if offset_resp:
-                    audios.extend(offset_resp['items'])
-
+        if isinstance(method_params_dict, dict) and 'playlist_id' in method_params_dict.keys():
+            owner_id = method_params_dict['owner_id']
+            playlist_id = method_params_dict['playlist_id']
+            url = f'https://m.vk.com/audio?act=audio_playlist{owner_id}_{playlist_id}'
+            page = requests.get(url).text
+            soup = BeautifulSoup(page, 'lxml')
+            divs = soup.find("div", class_='AudioPlaylistRoot')
+            if len(divs) > 0:
+                audio_ids_str = ','.join(x['data-id'] for x in divs)
+                resp = self._api_response('audio.getById', params={'audios': audio_ids_str})
+                if isinstance(resp, list) and resp:
+                    audios.extend(resp)
         return audios
 
     def _get_savers_count(self, audios):

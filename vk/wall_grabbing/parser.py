@@ -1,5 +1,8 @@
 from datetime import date
 
+import requests
+from bs4 import BeautifulSoup
+
 from vk.engine import VkEngine
 from vk.audio_savers_new.parser import AudioSaversNew
 from . import utils
@@ -169,16 +172,35 @@ class WallParser(VkEngine):
                                                      'access_hash': ac_hash,
                                                      'title': pl_title[0] if pl_title else None}})
 
-            resp = self._api_response('execute.getPlaylist', {'owner_id': pl_owner, 'id': pl_id, 'access_key': ac_hash})
-            if resp and 'audios' in resp.keys():
-                for audio in resp['audios']:
-                    audio = audio.copy()
-                    audio['source'] = 'playlist'
-                    post['attachments'].append({'type': 'audio', 'audio': audio})
+            # resp = self._api_response('execute.getPlaylist', {'owner_id': pl_owner, 'id': pl_id, 'access_key': ac_hash})
+            # if resp and 'audios' in resp.keys():
+            #     for audio in resp['audios']:
+            #         audio = audio.copy()
+            #         audio['source'] = 'playlist'
+            #         post['attachments'].append({'type': 'audio', 'audio': audio})
+
+            audios = self._get_audios_from_playlist_by_html(owner_id=pl_owner, playlist_id=pl_id)
+            for audio in audios:
+                audio = audio.copy()
+                audio['source'] = 'playlist'
+                post['attachments'].append({'type': 'audio', 'audio': audio})
 
             processed_posts.append(post)
 
         return processed_posts
+
+    def _get_audios_from_playlist_by_html(self, owner_id, playlist_id):
+        audios = []
+        url = f'https://m.vk.com/audio?act=audio_playlist{owner_id}_{playlist_id}'
+        page = requests.get(url).text
+        soup = BeautifulSoup(page, 'lxml')
+        divs = soup.find("div", class_='AudioPlaylistRoot')
+        if len(divs) > 0:
+            audio_ids_str = ','.join(x['data-id'] for x in divs)
+            resp = self._api_response('audio.getById', params={'audios': audio_ids_str})
+            if isinstance(resp, list) and resp:
+                audios.extend(resp)
+        return audios
 
     def _get_next_wall_batch(self):
         if self.is_offset_limited or self.current_offset > self.all_posts_count:
