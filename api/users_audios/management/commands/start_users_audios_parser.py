@@ -58,7 +58,10 @@ def _get_user_ids(parser):
     elif '\n' in user_ids:
         user_ids = user_ids.split('\n')
     else:
-        return []
+        try:
+            user_ids = [int(user_ids)]
+        except ValueError:
+            return []
 
     int_ids = []
     for x in user_ids:
