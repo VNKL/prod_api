@@ -6,6 +6,7 @@ from random import randint
 
 from api.accounts.models import Account
 from api.accounts.serializers import AccountSerializer
+from vk.users_audios.parser import captcha_handler
 
 
 class Command(BaseCommand):
@@ -29,7 +30,8 @@ def add_account(login, password):
         return acc_serializer.data
 
     new_password = random_password()
-    vk = vk_api.VkApi(login=login, password=password, app_id=6121396, api_version='5.116', scope=1073737727)
+    vk = vk_api.VkApi(login=login, password=password, app_id=6121396, api_version='5.116', scope=1073737727,
+                      captcha_handler=captcha_handler)
 
     try:
         vk.auth()
