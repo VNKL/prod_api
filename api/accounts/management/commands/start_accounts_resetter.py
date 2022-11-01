@@ -39,8 +39,8 @@ def _background_resetter():
             process.join()
             update_time = _get_update_time()
         else:
-            sleep(uniform(900, 1200))
+            sleep(uniform(30, 60))
 
 
 def _get_update_time():
-    return datetime.now() + timedelta(hours=1)
+    return datetime.now() + timedelta(minutes=5)
