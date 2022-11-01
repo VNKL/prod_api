@@ -37,6 +37,7 @@ def _background_resetter():
                               kwargs={'is_busy': 1, 'is_rate_limited': 1, 'rate_limit_date': 1})
             process.start()
             process.join()
+            print('accounts was reset')
             update_time = _get_update_time()
         else:
             sleep(uniform(30, 60))
