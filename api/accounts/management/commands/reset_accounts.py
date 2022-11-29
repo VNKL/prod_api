@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django import db
+from django.utils import timezone
 
 from api.accounts.models import Account
 
@@ -48,9 +49,13 @@ def reset_all(is_busy=False, is_rate_limited=False, is_alive=False, rate_limit_d
         if is_alive:
             acc.is_alive = True
         if is_rate_limited:
-            acc.is_rate_limited = False
+            delta = timezone.timedelta(hours=1)
+            if acc.rate_limit_date + delta < timezone.now():
+                acc.is_rate_limited = False
         if rate_limit_date:
-            acc.rate_limit_date = None
+            delta = timezone.timedelta(hours=1)
+            if acc.rate_limit_date + delta < timezone.now():
+                acc.rate_limit_date = None
         updated_accs.append(acc)
 
     Account.objects.bulk_update(updated_accs, fields=updated_fields, batch_size=40)

@@ -11,7 +11,7 @@ from vk.audio_savers_new.utils import captcha_handler
 
 
 def load_account(n_try=0):
-    if n_try < 5:
+    if n_try < 100:
 
         try:
             db.connections.close_all()
@@ -33,9 +33,9 @@ def load_account(n_try=0):
             try:
                 db.connections.close_all()
                 accounts = Account.objects.filter(is_alive=True, is_busy=False, is_rate_limited=True)
-                delta = timezone.timedelta(hours=24)
+                delta = timezone.timedelta(hours=1)
                 for acc in accounts:
-                    if acc.rate_limit_date + delta > timezone.now():
+                    if acc.rate_limit_date + delta < timezone.now():
                         release_account(acc)
                         acc.is_busy = True
                         acc.save()
@@ -46,7 +46,7 @@ def load_account(n_try=0):
                 db.connections.close_all()
                 return load_account(n_try=n_try + 1)
 
-            sleep(300)
+            sleep(15)
             db.connections.close_all()
             return load_account(n_try=n_try + 1)
 
@@ -221,6 +221,7 @@ def mark_account_dead(account, n_try=0):
 
 
 def mark_account_rate_limited(account, n_try=0):
+    print('MARK ACCOUNT RATE LIMITED')
     if n_try < 5:
         try:
             account.is_busy = False

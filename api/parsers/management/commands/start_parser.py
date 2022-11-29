@@ -134,6 +134,8 @@ def _start_parsing(parser):
     else:
         result = None
 
+    del vk
+
     parser = Parser.objects.filter(pk=parser.pk).first()
     if parser:
         if result:

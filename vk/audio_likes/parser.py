@@ -45,6 +45,7 @@ def get_savers_count_multiprocess(audio_ids, n_threads):
 def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
     vk = AudioLikes()
     savers_count = vk.get_savers_count_one_thread(audio_ids=audio_ids)
+    del vk
     result_list.append(savers_count)
     finish_list[n_thread] = 1
 
@@ -52,17 +53,32 @@ def get_savers_count_one_process(audio_ids, result_list, finish_list, n_thread):
 class AudioLikes(VkEngine):
 
     def _sc_for_one_audio(self, full_audio_id: str):
+        # owner_id, audio_id = full_audio_id.split('_')
+        # # if need_execute(audio_id=full_audio_id):
+        # code = code_for_savers_count(owner_id=owner_id, audio_id=audio_id)
+        # resp = self._execute_response(code=code)
+        # if resp and isinstance(resp, int):
+        #     return resp
+        # # else:
+        # #     data = {'type': 'audio', 'owner_id': owner_id, 'item_id': audio_id}
+        # #     resp = self._api_response(method='likes.add', params=data)
+        # #     if isinstance(resp, dict) and 'likes' in resp.keys():
+        # #         return resp['likes']
+
         owner_id, audio_id = full_audio_id.split('_')
-        # if need_execute(audio_id=full_audio_id):
-        code = code_for_savers_count(owner_id=owner_id, audio_id=audio_id)
-        resp = self._execute_response(code=code)
-        if resp and isinstance(resp, int):
-            return resp
-        # else:
-        #     data = {'type': 'audio', 'owner_id': owner_id, 'item_id': audio_id}
-        #     resp = self._api_response(method='likes.add', params=data)
-        #     if isinstance(resp, dict) and 'likes' in resp.keys():
-        #         return resp['likes']
+        savers_count = None
+        added_audio_id = self._api_response('audio.add', params={'owner_id': owner_id,
+                                                                 'audio_id': audio_id})
+        if added_audio_id:
+            temp_resp = self._api_response('likes.delete', params={'type': 'audio',
+                                                                   'owner_id': owner_id,
+                                                                   'item_id': audio_id})
+            if isinstance(temp_resp, dict) and 'likes' in temp_resp.keys():
+                savers_count = temp_resp['likes']
+
+        self._api_response('audio.delete', params={'owner_id': self.account.user_id,
+                                                   'audio_id': added_audio_id})
+        return savers_count
 
     def get_savers_count_one_thread(self, audio_ids):
         if isinstance(audio_ids, str):
