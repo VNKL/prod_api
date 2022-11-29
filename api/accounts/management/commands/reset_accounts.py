@@ -50,11 +50,11 @@ def reset_all(is_busy=False, is_rate_limited=False, is_alive=False, rate_limit_d
             acc.is_alive = True
         if is_rate_limited:
             delta = timezone.timedelta(hours=1)
-            if acc.rate_limit_date + delta < timezone.now():
+            if acc.rate_limit_date and acc.rate_limit_date + delta < timezone.now():
                 acc.is_rate_limited = False
         if rate_limit_date:
             delta = timezone.timedelta(hours=1)
-            if acc.rate_limit_date + delta < timezone.now():
+            if acc.rate_limit_date and acc.rate_limit_date + delta < timezone.now():
                 acc.rate_limit_date = None
         updated_accs.append(acc)
 
